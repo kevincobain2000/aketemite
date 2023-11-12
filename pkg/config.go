@@ -27,6 +27,7 @@ func NewConfig(configPath string) Config {
 
 	if err != nil {
 		fmt.Println("Error reading YAML file:", err)
+		fmt.Println("Please make sure you have a config.yaml file in the current directory. Or you can specify the path to the config file using the --config-path=/path/config.yml flag.")
 		os.Exit(1)
 	}
 	err = yaml.Unmarshal([]byte(yamlContent), &config)

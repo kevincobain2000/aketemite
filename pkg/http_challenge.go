@@ -232,16 +232,22 @@ func (hc *HttpChallenge) isURL2SubsetOfURL1(url1 string, url2 string) bool {
 		return false
 	}
 
-	// Check the scheme and host
-	if parsedURL1.Scheme != parsedURL2.Scheme || parsedURL1.Host != parsedURL2.Host {
+	// Check the scheme
+	if parsedURL1.Scheme != parsedURL2.Scheme {
 		return false
 	}
 
+	// Check if url2's host is the same as or a subdomain of url1's host
+	if !isSubdomainOrSame(parsedURL1.Host, parsedURL2.Host) {
+		return false
+	}
+
+	// Existing path prefix check
 	if !strings.HasPrefix(parsedURL2.Path, parsedURL1.Path) {
 		return false
 	}
 
-	// Check query parameters
+	// Existing query parameter check
 	params1 := parsedURL1.Query()
 	params2 := parsedURL2.Query()
 
@@ -252,4 +258,19 @@ func (hc *HttpChallenge) isURL2SubsetOfURL1(url1 string, url2 string) bool {
 	}
 
 	return true
+}
+
+// Helper function to check if one host is a subdomain of another
+func isSubdomainOrSame(baseHost, subHost string) bool {
+	// If hosts are identical
+	if baseHost == subHost {
+		return true
+	}
+
+	// If subHost is a subdomain of baseHost
+	if strings.HasSuffix(subHost, "."+baseHost) {
+		return true
+	}
+
+	return false
 }

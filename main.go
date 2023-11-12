@@ -69,6 +69,7 @@ func main() {
 	})
 	go pkg.GetResponseData(config, cache)
 	go scheduler(config, cache)
+	pkg.Logger().Info("Starting server on localhost:" + port + BASE_PATH)
 	e.Start("localhost:" + port)
 
 }
@@ -80,7 +81,7 @@ func scheduler(config pkg.Config, cache *diskv.Diskv) {
 
 func cliArgs() {
 	flag.StringVar(&port, "port", "3001", "port to serve")
-	flag.StringVar(&configPath, "config-path", "sample.yml", "config path")
+	flag.StringVar(&configPath, "config-path", "config.yml", "config path")
 	flag.StringVar(&cacheDir, "cache-dir", "/tmp/aketemite", "cache dir")
 	flag.Uint64Var(&pingFreq, "ping-freq", 300, "ping frequency")
 	flag.BoolVar(&deleteCacheFlag, "delete-cache", false, "delete cache")

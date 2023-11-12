@@ -28,13 +28,15 @@ curl -sLk https://raw.githubusercontent.com/kevincobain2000/aketemite/master/ins
 ```
 
 ```sh
-./aketamite sample.yml
+./aketemite --config=path=config.yml
 ```
+
+localhost:3000/aketemite
 
 ## Screenshots
 
 ```yml
-# sample.yml
+# config.yml
 urls:
   - name: https://kevincobain2000.github.io
     timeout: 2000
@@ -51,7 +53,7 @@ urls:
 
 ```
 
-![Screenshot](https://imgur.com/HkJsFQU.png)
+![Screenshot](https://imgur.com/cdKYfYK.png)
 
 ## Development Notes
 
