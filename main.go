@@ -83,7 +83,7 @@ func cliArgs() {
 	flag.StringVar(&port, "port", "3001", "port to serve")
 	flag.StringVar(&configPath, "config-path", "config.yml", "config path")
 	flag.StringVar(&cacheDir, "cache-dir", "/tmp/aketemite", "cache dir")
-	flag.Uint64Var(&pingFreq, "ping-freq", 300, "ping frequency")
-	flag.BoolVar(&deleteCacheFlag, "delete-cache", false, "delete cache")
+	flag.Uint64Var(&pingFreq, "ping-freq", 300, "ping frequency in seconds")
+	flag.BoolVar(&deleteCacheFlag, "delete-cache", false, "delete cache before starting this application")
 	flag.Parse()
 }

@@ -55,6 +55,23 @@ urls:
 
 ![Screenshot](https://imgur.com/cdKYfYK.png)
 
+## Advanced Options
+
+```sh
+   Usage of ./aketemite:
+   Example ./aketemite --config-path=config.yml --port=3000 --delete-cache --cache-dir=/tmp/aketemite
+  -cache-dir string
+    	cache dir (default "/tmp/aketemite")
+  -config-path string
+    	config path (default "config.yml")
+  -delete-cache
+    	delete cache
+  -ping-freq uint
+    	ping frequency (default 300)
+  -port string
+    	port to serve (default "3001")
+```
+
 ## Development Notes
 
 ```sh
