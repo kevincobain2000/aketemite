@@ -21,37 +21,48 @@
 # Build Status
 
 
-## Usage
+## Installation
 
-```sh
-go run main.go sample.yml
-
-#or
-go install github.com/kevincobain2000/aketemite@latest
-aketemite sample.yml
-```
 
 ## Screenshots
 
 ```yml
 # sample.yml
 urls:
-  #success case with crawling
   - name: https://kevincobain2000.github.io
-    timeout: 2000 #in ms
-    enabled: true
+    timeout: 2000
+    crawl: false
+  - name: https://kevincobain2000.github.io/404
+    timeout: 2000
     crawl: true
-  #error case
-  - name: https://kevincobain2001.github.io
-    timeout: 2000 #in ms
-    enabled: true
+  - name: https://coveritup.app
+    timeout: 2000
     crawl: true
-  #success case without crawling
   - name: https://github.com
     timeout: 2000
-    enabled: true
     crawl: false
 
 ```
 
-![Screenshot](https://imgur.com/q6w2IEJ.png)
+![Screenshot](https://imgur.com/HkJsFQU.png)
+
+## Development Notes
+
+```sh
+air
+
+cd ui/
+npm install
+npm run dev
+```
+
+## Release Notes
+
+```sh
+cd ui/
+npm install
+npm run build
+
+cd ..
+go build -o aketemite main.go
+```

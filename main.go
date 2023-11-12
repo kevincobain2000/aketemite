@@ -1,17 +1,24 @@
 package main
 
 import (
+	"embed"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"net/http"
 
 	"github.com/jasonlvhit/gocron"
 	"github.com/kevincobain2000/aketemite/pkg"
 	"github.com/labstack/echo/v4"
+	"github.com/peterbourgon/diskv/v3"
 )
 
+//go:embed all:ui/dist/*
+var publicDir embed.FS
+
 const (
-	DEFAULT_PORT = "3001"
+	BASE_PATH  = "/aketemite"
+	PUBLIC_DIR = "ui/dist"
 )
 
 var (
@@ -33,7 +40,7 @@ func main() {
 
 	e := pkg.NewEcho()
 
-	e.GET("/aketemite/api", func(c echo.Context) error {
+	e.GET(BASE_PATH+"/api", func(c echo.Context) error {
 		responseCache, err := cache.Read(pkg.CACHE_KEY_RESPONSE_DATA)
 		responseData := []pkg.HttpResult{}
 		json.Unmarshal(responseCache, &responseData)
@@ -42,8 +49,29 @@ func main() {
 		}
 		return c.JSON(http.StatusOK, responseData)
 	})
+	e.GET(BASE_PATH+"*", func(c echo.Context) error {
+		embedPath := c.Request().URL.Path
+		embedPath = embedPath[len(BASE_PATH):]
+		filename := fmt.Sprintf("%s/%s", PUBLIC_DIR, embedPath)
+
+		filename = pkg.SlashIndexFile(filename)
+		filename = pkg.ReplaceDoubleSlash(filename)
+
+		content, err := publicDir.ReadFile(filename)
+		if err != nil {
+			return c.String(http.StatusNotFound, "404 page not found")
+		}
+
+		return c.Blob(http.StatusOK, pkg.GetContentType(filename), content)
+
+	})
 	go pkg.GetResponseData(config, cache)
-	go pkg.GracefulServerWithPid(e, port)
+	go scheduler(config, cache)
+	pkg.GracefulServerWithPid(e, port)
+
+}
+
+func scheduler(config pkg.Config, cache *diskv.Diskv) {
 	gocron.Every(pingFreq).Seconds().Do(pkg.GetResponseData, config, cache)
 	<-gocron.Start()
 }
@@ -52,7 +80,7 @@ func cliArgs() {
 	flag.StringVar(&port, "port", "3001", "port to serve")
 	flag.StringVar(&configPath, "config-path", "sample.yml", "config path")
 	flag.StringVar(&cacheDir, "cache-dir", "/tmp/aketemite", "cache dir")
-	flag.Uint64Var(&pingFreq, "ping-freq", 60, "ping frequency in seconds")
+	flag.Uint64Var(&pingFreq, "ping-freq", 300, "ping frequency")
 	flag.BoolVar(&deleteCacheFlag, "delete-cache", false, "delete cache")
 	flag.Parse()
 }

@@ -58,6 +58,7 @@ export const ResultsTable = () => {
     fetch(process.env.NEXT_PUBLIC_API_URL as string, {
         next: {
             tags: ["api"],
+            revalidate: 1,
         }
     })
       .then((response) => {

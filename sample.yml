@@ -3,13 +3,13 @@ urls:
     timeout: 2000
     crawl: false
   - name: https://kevincobain2000.github.io
-    timeout: 2000 #in ms
+    timeout: 2000
     crawl: false
   - name: https://kevincobain2000.github.io/404
-    timeout: 2000 #in ms
+    timeout: 2000
     crawl: true
   - name: https://coveritup.app
-    timeout: 2000 #in ms
+    timeout: 2000
     crawl: true
   - name: https://github.com
     timeout: 2000
