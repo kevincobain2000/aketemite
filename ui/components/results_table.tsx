@@ -5,6 +5,7 @@ import { Link, input } from "@nextui-org/react";
 import { Spinner } from "@nextui-org/react";
 import { Input } from "@nextui-org/react";
 import { Button } from "@nextui-org/react";
+import { Card, CardBody } from "@nextui-org/react";
 // @ts-ignore
 import TimeAgo from "react-timeago";
 // @ts-ignore
@@ -18,7 +19,7 @@ import {
   TableCell,
 } from "@nextui-org/react";
 import { Chip } from "@nextui-org/react";
-import { SearchIcon } from "@/components/icons";
+import { ErrorIcon, SearchIcon } from "@/components/icons";
 
 type HttpResult = {
   is_alive: boolean;
@@ -54,7 +55,11 @@ export const ResultsTable = () => {
     setFilteredData(filtered);
   };
   useEffect(() => {
-    fetch(process.env.NEXT_PUBLIC_API_URL as string)
+    fetch(process.env.NEXT_PUBLIC_API_URL as string, {
+        next: {
+            tags: ["api"],
+        }
+    })
       .then((response) => {
         setLoading(false);
         if (response.status !== 200) {
@@ -64,8 +69,12 @@ export const ResultsTable = () => {
         return response.json();
       })
       .then((data) => {
-        setData(data);
-        setFilteredData(data);
+        if (data instanceof Array) {
+            setData(data);
+            setFilteredData(data);
+        } else {
+            setError("Invalid response from server");
+        }
       })
       .catch((error) => {
         setLoading(false);
@@ -80,9 +89,14 @@ export const ResultsTable = () => {
   return (
     <>
       {error && (
-        <div className="text-center pb-5">
-          <p className="text-danger">{error}</p>
-        </div>
+        <Card className="mb-5 bg-red-600">
+          <CardBody>
+            <p>
+              <ErrorIcon className="mr-2 inline" />
+              {error}
+            </p>
+          </CardBody>
+        </Card>
       )}
       {loading && (
         <div className="text-center">
@@ -161,7 +175,9 @@ export const ResultsTable = () => {
                 <TableCell
                   className={row.is_alive ? "text-default-400" : "text-danger"}
                 >
-                  <TimeAgo date={row.last_failed} className="text-warning-400" />
+                  <TimeAgo
+                    date={row.last_failed}
+                  />
                   <span className="text-success">
                     {row.last_failed ? "" : "Never Failed"}
                   </span>

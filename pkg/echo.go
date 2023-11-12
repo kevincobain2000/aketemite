@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/fvbock/endless"
 	"github.com/labstack/echo/v4"
@@ -24,15 +25,18 @@ func SetupCors(e *echo.Echo) {
 	}))
 }
 func SetupLogger(e *echo.Echo) {
-	log := logrus.New()
+	log := Logger()
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+		LogMethod: true,
 		LogURI:    true,
 		LogStatus: true,
 		LogValuesFunc: func(c echo.Context, values middleware.RequestLoggerValues) error {
 			log.WithFields(logrus.Fields{
+				"method": values.Method,
 				"URI":    values.URI,
 				"status": values.Status,
-			}).Info("request")
+				"time":   time.Now().Format("2006-01-02 15:04:05"),
+			}).Info("HTTP Request")
 
 			return nil
 		},
@@ -44,7 +48,7 @@ func SetupLogger(e *echo.Echo) {
 // kill -9 when want to kill the process and make the application dead and want to restart
 // kill -9 is NOT FOR FAINT HEARTED and must not be done on prod unless SOUT
 func GracefulServerWithPid(e *echo.Echo, port string) {
-	log := logrus.New()
+	log := Logger()
 	server := endless.NewServer("localhost:"+port, e)
 	server.BeforeBegin = func(add string) {
 		pidFile := filepath.Join(port + ".pid")

@@ -1,6 +1,7 @@
 package pkg
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"strings"
@@ -11,11 +12,13 @@ import (
 	"github.com/headzoo/surf"
 	"github.com/headzoo/surf/browser"
 	"github.com/peterbourgon/diskv/v3"
-	"github.com/sirupsen/logrus"
 )
 
 const (
-	DEFAULT_USERAGENT = "Go/aketemite"
+	DEFAULT_USERAGENT       = "Go/aketemite"
+	CACHE_KEY_RESPONSE_DATA = "response-data"
+	CACHE_KEY_LAST_SUCCESS  = "last-success"
+	CACHE_KEY_LAST_FAILED   = "last-failed"
 )
 
 type HttpResult struct {
@@ -33,11 +36,9 @@ type HttpChallenge struct {
 	browse *browser.Browser
 	crawl  bool
 	Result HttpResult
-	log    *logrus.Logger
 }
 
 func NewHttpChallenge(timeout time.Duration, crawl bool) *HttpChallenge {
-	l := logrus.New()
 	b := surf.NewBrowser()
 	b.SetUserAgent(DEFAULT_USERAGENT)
 	b.SetTimeout(timeout * time.Millisecond)
@@ -46,7 +47,6 @@ func NewHttpChallenge(timeout time.Duration, crawl bool) *HttpChallenge {
 		browse: b,
 		crawl:  crawl,
 		Result: HttpResult{},
-		log:    l,
 	}
 }
 
@@ -63,12 +63,12 @@ func GetResponseData(config Config, cache *diskv.Diskv) []HttpResult {
 		go func(url URLConfig) {
 			defer wg.Done()
 			hc := NewHttpChallenge(time.Duration(url.Timeout), url.Crawl)
-			hc.log.Info("Crawling: ", url.Name)
+			Logger().Info("Crawling: ", url.Name)
 			urls := []string{url.Name}
 			if url.Crawl {
 				urls = hc.crawlhrefs(url.Name)
 			}
-			hc.log.Info("Located: ", len(urls), " urls")
+			Logger().Info("Located: ", len(urls), " urls")
 
 			for _, u := range urls {
 				mu.Lock()
@@ -82,7 +82,7 @@ func GetResponseData(config Config, cache *diskv.Diskv) []HttpResult {
 				wg.Add(1)
 				go func(u string) {
 					defer wg.Done()
-					hc.log.Info("Pinging: ", u)
+					Logger().Info("Pinging: ", u)
 					hc.ping(u)
 					resultsChan <- hc.Result
 				}(u)
@@ -107,7 +107,7 @@ func GetResponseData(config Config, cache *diskv.Diskv) []HttpResult {
 func updateCache(responseData []HttpResult, cache *diskv.Diskv) []HttpResult {
 	newResponseData := []HttpResult{}
 	for i, result := range responseData {
-		sk := StringToMD5Hash(result.Url + "-last-success")
+		sk := StringToMD5Hash(result.Url + CACHE_KEY_LAST_SUCCESS)
 		if result.LastSuccess == "" {
 			v, err := cache.Read(sk)
 			if err == nil {
@@ -117,7 +117,7 @@ func updateCache(responseData []HttpResult, cache *diskv.Diskv) []HttpResult {
 			cache.Write(sk, StringToByteSlice(result.LastSuccess))
 		}
 
-		fk := StringToMD5Hash(result.Url + "-last-failed")
+		fk := StringToMD5Hash(result.Url + CACHE_KEY_LAST_FAILED)
 		if result.LastFailed == "" {
 			v, err := cache.Read(fk)
 			if err == nil {
@@ -128,6 +128,12 @@ func updateCache(responseData []HttpResult, cache *diskv.Diskv) []HttpResult {
 		}
 		newResponseData = append(newResponseData, responseData[i])
 	}
+	j, err := json.Marshal(newResponseData)
+	if err != nil {
+		Logger().Error("Error marshalling json: ", err)
+	}
+	Logger().Info("Writing to cache")
+	cache.Write(CACHE_KEY_RESPONSE_DATA, j)
 	return newResponseData
 }
 
@@ -140,7 +146,7 @@ func (hc *HttpChallenge) ping(url string) {
 	var result HttpResult
 
 	if err != nil {
-		hc.log.Error("Error opening URL: ", err)
+		Logger().Error("Error opening URL: ", err)
 		result = HttpResult{
 			IsAlive:      false,
 			ResponseCode: 0,
@@ -164,9 +170,9 @@ func (hc *HttpChallenge) ping(url string) {
 		}
 	}
 	if !result.IsAlive {
-		result.LastFailed = time.Now().Format(time.RFC3339)
+		result.LastFailed = time.Now().Format("2006-01-02 15:04:05")
 	} else {
-		result.LastSuccess = time.Now().Format(time.RFC3339)
+		result.LastSuccess = time.Now().Format("2006-01-02 15:04:05")
 	}
 
 	hc.Result = result
@@ -186,7 +192,7 @@ func (hc *HttpChallenge) crawlhrefs(url string) []string {
 	urls = append(urls, url)
 	err := hc.browse.Open(url)
 	if err != nil {
-		hc.log.Error("Error opening URL: ", err)
+		Logger().Error("Error opening URL: ", err)
 		return urls
 	}
 
