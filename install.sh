@@ -3,7 +3,7 @@
 BIN_DIR=$(pwd)
 
 THE_ARCH_BIN=''
-THIS_PROJECT_NAME='aketamite'
+THIS_PROJECT_NAME='aketemite'
 
 THISOS=$(uname -s)
 ARCH=$(uname -m)
