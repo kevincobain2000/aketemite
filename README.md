@@ -21,8 +21,12 @@
 # Build Status
 
 
-## Installation
+## Getting Started
 
+```sh
+curl -sLk https://raw.githubusercontent.com/kevincobain2000/aketemite/master/install.sh | sh
+./aketamite sample.yml
+```
 
 ## Screenshots
 
