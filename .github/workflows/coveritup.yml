@@ -1,16 +1,4 @@
-on:
-  pull_request:
-    paths:
-      - '**/*.go'
-      - '**/*.mod'
-      - '**/*.sum'
-      - '**/*.yaml'
-  push:
-    paths:
-      - '**/*.go'
-      - '**/*.mod'
-      - '**/*.sum'
-      - '**/*.yaml'
+on: [push, pull_request]
 name: Cover It Up
 jobs:
   coveritup:
@@ -30,6 +18,12 @@ jobs:
           go install github.com/securego/gosec/v2/cmd/gosec@latest
           go install github.com/axw/gocov/gocov@latest
           go install github.com/AlekSi/gocov-xml@latest
+
+      - name: Prepare Embed
+        run: |
+          mkdir -p ui/dist
+          touch ui/dist/index.html
+
       - name: Test
         run: |
           BUILD_START=$SECONDS

@@ -1,7 +1,4 @@
-on:
-  pull_request:
-    paths:
-      - 'ui/**/*'
+on: push
 name: CI
 jobs:
   build:
