@@ -69,7 +69,7 @@ func main() {
 	})
 	go pkg.GetResponseData(config, cache)
 	go scheduler(config, cache)
-	pkg.GracefulServerWithPid(e, port)
+	e.Start("localhost:" + port)
 
 }
 

@@ -4,7 +4,6 @@ go 1.21.4
 
 require (
 	github.com/PuerkitoBio/goquery v1.8.1
-	github.com/fvbock/endless v0.0.0-20170109170031-447134032cb6
 	github.com/headzoo/surf v1.0.1
 	github.com/jasonlvhit/gocron v0.0.1
 	github.com/labstack/echo/v4 v4.11.3

@@ -49,7 +49,7 @@ if [ -z "$THE_ARCH_BIN" ]; then
    exit 1
 fi
 
-curl -kLs https://github.com/kevincobain2000/$THIS_PROJECT_NAME/releases/latest/download/$THE_ARCH_BIN -o $BIN_DIR/$THIS_PROJECT_NAME
+curl -kL --progress-bar https://github.com/kevincobain2000/$THIS_PROJECT_NAME/releases/latest/download/$THE_ARCH_BIN -o $BIN_DIR/$THIS_PROJECT_NAME
 
 chmod +x $BIN_DIR/$THIS_PROJECT_NAME
 
