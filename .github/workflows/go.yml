@@ -1,7 +1,7 @@
 on: push
 name: CI
 jobs:
-  build:
+  go:
     strategy:
       matrix:
         go-version: [dev-latest, mod]
@@ -19,3 +19,5 @@ jobs:
           touch ui/dist/index.html
       - name: Build
         run: go build main.go
+      - name: Test
+        run: go test -race -v ./... -count=1

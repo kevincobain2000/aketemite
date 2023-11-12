@@ -1,7 +1,7 @@
 on: push
 name: CI
 jobs:
-  build:
+  node:
     strategy:
       matrix:
         node-versions: [20]
