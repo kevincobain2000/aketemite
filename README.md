@@ -4,18 +4,18 @@
   </a>
 </p>
 <p align="center">
-  Simple CLI tool written in Go, to ping a url and get the status code.
+  Simple tool written in Go, to ping urls and get the status code.
   <br>
   Monitor up status for websites, api and URLs, with automatic crawling capability.
 </p>
 
-**Quick Setup:** One command to ping multiple urls and get the result.
+**Quick Setup:** One command to ping multiple urls and monitor result.
 
 **Monitor periodically:** Monitor the urls periodically and get the status code.
 
 **Crawling capability:** Crawls entire page, finds the links and obtains the status code.
 
-**Beautiful:** Beautiful and simple UI.
+**Beautiful:** Beautiful and simple dashboard.
 
 
 # Build Status
