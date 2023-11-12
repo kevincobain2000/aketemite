@@ -5,7 +5,6 @@ import { Link, input } from "@nextui-org/react";
 import { Spinner } from "@nextui-org/react";
 import { Input } from "@nextui-org/react";
 import { Button } from "@nextui-org/react";
-import {CircularProgress} from "@nextui-org/react";
 // @ts-ignore
 import TimeAgo from "react-timeago";
 // @ts-ignore
@@ -20,7 +19,6 @@ import {
 } from "@nextui-org/react";
 import { Chip } from "@nextui-org/react";
 import { SearchIcon } from "@/components/icons";
-
 
 type HttpResult = {
   is_alive: boolean;
@@ -39,7 +37,6 @@ export const ResultsTable = () => {
   const [search, setSearch] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [progress, setProgress] = useState<number>(0);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -78,7 +75,7 @@ export const ResultsTable = () => {
 
   const truncate = (str: string, n: number) => {
     return str.length > n ? str.substr(0, n - 1) + "..." : str;
-  }
+  };
 
   return (
     <>
@@ -89,14 +86,7 @@ export const ResultsTable = () => {
       )}
       {loading && (
         <div className="text-center">
-          {/* <Spinner label="Loading..." color="warning" /> */}
-          <CircularProgress
-            aria-label="Loading..."
-            size="lg"
-            value={progress}
-            color="warning"
-            showValueLabel={true}
-         />
+          <Spinner label="Loading..." color="warning" />
         </div>
       )}
       {!loading && (
@@ -121,7 +111,7 @@ export const ResultsTable = () => {
             }
             type="text"
           />
-          <Button color="warning" variant="shadow" type="submit">
+          <Button color="default" variant="shadow" type="submit">
             Filter
           </Button>
         </form>
@@ -134,8 +124,8 @@ export const ResultsTable = () => {
             <TableColumn>STATUS</TableColumn>
             <TableColumn>RESPONSE TIME</TableColumn>
             <TableColumn>RESPONSE SIZE</TableColumn>
-            <TableColumn>SUCCESS</TableColumn>
-            <TableColumn>FAILED</TableColumn>
+            <TableColumn>LAST SUCCESS</TableColumn>
+            <TableColumn>LAST FAILED</TableColumn>
             <TableColumn>URL</TableColumn>
           </TableHeader>
           <TableBody emptyContent={"No rows to display."}>
@@ -164,9 +154,17 @@ export const ResultsTable = () => {
                 <TableCell>{row.response_size}kb</TableCell>
                 <TableCell className="text-default-400">
                   <TimeAgo date={row.last_success} />
+                  <span className="text-danger">
+                    {row.last_success ? "" : "Never Success"}
+                  </span>
                 </TableCell>
-                <TableCell className="text-danger">
-                  <TimeAgo date={row.last_failed} />
+                <TableCell
+                  className={row.is_alive ? "text-default-400" : "text-danger"}
+                >
+                  <TimeAgo date={row.last_failed} className="text-warning-400" />
+                  <span className="text-success">
+                    {row.last_failed ? "" : "Never Failed"}
+                  </span>
                 </TableCell>
                 <TableCell>
                   <Link isExternal href={row.url} aria-label="Link">
@@ -174,7 +172,7 @@ export const ResultsTable = () => {
                       {truncate(row.title, 100)}
                       <p
                         className={`${
-                          row.is_alive ? "text-indigo-600" : "text-danger"
+                          row.is_alive ? "text-violet-600" : "text-danger"
                         } break-words w-80 hover:underline`}
                       >
                         {truncate(row.url, 150)}

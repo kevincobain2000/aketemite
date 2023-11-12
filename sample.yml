@@ -4,7 +4,7 @@ urls:
     crawl: false
   - name: https://kevincobain2000.github.io
     timeout: 2000 #in ms
-    crawl: true
+    crawl: false
   - name: https://kevincobain2000.github.io/404
     timeout: 2000 #in ms
     crawl: true

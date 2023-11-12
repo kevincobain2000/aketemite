@@ -10,12 +10,12 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/headzoo/surf"
 	"github.com/headzoo/surf/browser"
+	"github.com/peterbourgon/diskv/v3"
 	"github.com/sirupsen/logrus"
 )
 
 const (
 	DEFAULT_USERAGENT = "Go/aketemite"
-	CACHE_DIR         = "/tmp/aketemite"
 )
 
 type HttpResult struct {
@@ -50,7 +50,7 @@ func NewHttpChallenge(timeout time.Duration, crawl bool) *HttpChallenge {
 	}
 }
 
-func GetResponseData(config Config) []HttpResult {
+func GetResponseData(config Config, cache *diskv.Diskv) []HttpResult {
 	alreadyPingUrls := make(map[string]struct{})
 	var mu sync.Mutex // To protect concurrent access to alreadyPingUrls
 	var wg sync.WaitGroup
@@ -100,7 +100,35 @@ func GetResponseData(config Config) []HttpResult {
 		responseData = append(responseData, result)
 	}
 
-	return responseData
+	newResponseData := updateCache(responseData, cache)
+	return newResponseData
+}
+
+func updateCache(responseData []HttpResult, cache *diskv.Diskv) []HttpResult {
+	newResponseData := []HttpResult{}
+	for i, result := range responseData {
+		sk := StringToMD5Hash(result.Url + "-last-success")
+		if result.LastSuccess == "" {
+			v, err := cache.Read(sk)
+			if err == nil {
+				responseData[i].LastSuccess = ByteSliceToString(v)
+			}
+		} else {
+			cache.Write(sk, StringToByteSlice(result.LastSuccess))
+		}
+
+		fk := StringToMD5Hash(result.Url + "-last-failed")
+		if result.LastFailed == "" {
+			v, err := cache.Read(fk)
+			if err == nil {
+				responseData[i].LastFailed = ByteSliceToString(v)
+			}
+		} else {
+			cache.Write(fk, StringToByteSlice(result.LastFailed))
+		}
+		newResponseData = append(newResponseData, responseData[i])
+	}
+	return newResponseData
 }
 
 func (hc *HttpChallenge) ping(url string) {
@@ -120,7 +148,7 @@ func (hc *HttpChallenge) ping(url string) {
 			Url:          url,
 			ResponseTime: elapsed.String(),
 			ResponseSize: 0,
-			LastFailed:   time.Now().Format(time.RFC3339),
+			LastFailed:   "",
 			LastSuccess:  "",
 		}
 	} else {
@@ -134,11 +162,11 @@ func (hc *HttpChallenge) ping(url string) {
 			LastFailed:   "",
 			LastSuccess:  "",
 		}
-		if !result.IsAlive {
-			result.LastFailed = time.Now().Format(time.RFC3339)
-		} else {
-			result.LastSuccess = time.Now().Format(time.RFC3339)
-		}
+	}
+	if !result.IsAlive {
+		result.LastFailed = time.Now().Format(time.RFC3339)
+	} else {
+		result.LastSuccess = time.Now().Format(time.RFC3339)
 	}
 
 	hc.Result = result
