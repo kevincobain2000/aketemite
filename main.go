@@ -13,6 +13,8 @@ import (
 	"github.com/peterbourgon/diskv/v3"
 )
 
+var version = "dev"
+
 //go:embed all:ui/dist/*
 var publicDir embed.FS
 

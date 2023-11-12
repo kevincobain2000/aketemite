@@ -25,6 +25,9 @@
 
 ```sh
 curl -sLk https://raw.githubusercontent.com/kevincobain2000/aketemite/master/install.sh | sh
+```
+
+```sh
 ./aketamite sample.yml
 ```
 
