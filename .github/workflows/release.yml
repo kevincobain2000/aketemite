@@ -23,7 +23,9 @@ jobs:
           node-version: 20
       - name: Build Dist for Embed
         working-directory: ui
-        run: npm run build
+        run: |
+          npm install
+          npm run build
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v3
