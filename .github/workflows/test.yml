@@ -18,5 +18,9 @@ jobs:
       - uses: kevincobain2000/action-gobrew@v2.2
         with:
           version: ${{ matrix.go-version }}
+      - name: Prepare Embed
+        run: |
+          mkdir -p ui/dist
+          touch ui/dist/index.html
       - name: Test
         run: go test -race -v ./... -count=1
