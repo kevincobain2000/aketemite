@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://github.com/kevincobain2000/aketemite">
-    <img alt="gobrew" src="https://imgur.com/4tkG6Zh.png" width="360">
+    <img alt="gobrew" src="https://imgur.com/rcEV0qE.png" width="360">
   </a>
 </p>
 <p align="center">
@@ -11,9 +11,11 @@
 
 **Quick Setup:** One command to ping multiple urls and get the result.
 
+**Monitor periodically:** Monitor the urls periodically and get the status code.
+
 **Crawling capability:** Crawls entire page, finds the links and obtains the status code.
 
-**Colorful:** Colorful output.
+**Beautiful:** Beautiful and simple UI.
 
 
 # Build Status

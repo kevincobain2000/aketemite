@@ -5,6 +5,7 @@ import { Link, input } from "@nextui-org/react";
 import { Spinner } from "@nextui-org/react";
 import { Input } from "@nextui-org/react";
 import { Button } from "@nextui-org/react";
+import {CircularProgress} from "@nextui-org/react";
 // @ts-ignore
 import TimeAgo from "react-timeago";
 // @ts-ignore
@@ -19,6 +20,7 @@ import {
 } from "@nextui-org/react";
 import { Chip } from "@nextui-org/react";
 import { SearchIcon } from "@/components/icons";
+
 
 type HttpResult = {
   is_alive: boolean;
@@ -37,6 +39,7 @@ export const ResultsTable = () => {
   const [search, setSearch] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [progress, setProgress] = useState<number>(0);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -53,7 +56,6 @@ export const ResultsTable = () => {
     });
     setFilteredData(filtered);
   };
-
   useEffect(() => {
     fetch(process.env.NEXT_PUBLIC_API_URL as string)
       .then((response) => {
@@ -74,6 +76,10 @@ export const ResultsTable = () => {
       });
   }, []);
 
+  const truncate = (str: string, n: number) => {
+    return str.length > n ? str.substr(0, n - 1) + "..." : str;
+  }
+
   return (
     <>
       {error && (
@@ -83,7 +89,14 @@ export const ResultsTable = () => {
       )}
       {loading && (
         <div className="text-center">
-          <Spinner label="Loading..." color="warning" />
+          {/* <Spinner label="Loading..." color="warning" /> */}
+          <CircularProgress
+            aria-label="Loading..."
+            size="lg"
+            value={progress}
+            color="warning"
+            showValueLabel={true}
+         />
         </div>
       )}
       {!loading && (
@@ -157,14 +170,14 @@ export const ResultsTable = () => {
                 </TableCell>
                 <TableCell>
                   <Link isExternal href={row.url} aria-label="Link">
-                    <span className="text-default-400 break-words w-96 text-sm hover:text-default-900">
-                      {row.title}
+                    <span className="text-default-400 break-words w-80 text-sm hover:text-default-900">
+                      {truncate(row.title, 100)}
                       <p
                         className={`${
                           row.is_alive ? "text-indigo-600" : "text-danger"
-                        } break-words w-96 hover:underline`}
+                        } break-words w-80 hover:underline`}
                       >
-                        {row.url}
+                        {truncate(row.url, 150)}
                       </p>
                     </span>
                   </Link>
