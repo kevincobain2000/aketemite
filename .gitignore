@@ -21,3 +21,7 @@ bin/
 build/
 
 ignore.yml
+node_modules/
+ui/out/
+
+.vscode
