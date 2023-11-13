@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/jasonlvhit/gocron"
 	"github.com/kevincobain2000/aketemite/pkg"
@@ -32,6 +33,10 @@ var (
 )
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "version" {
+		fmt.Println(version)
+		os.Exit(0)
+	}
 	cliArgs()
 	cache := pkg.GetCache(cacheDir)
 	if deleteCacheFlag {

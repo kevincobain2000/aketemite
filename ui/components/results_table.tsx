@@ -5,6 +5,7 @@ import { Link, input } from "@nextui-org/react";
 import { Spinner } from "@nextui-org/react";
 import { Input } from "@nextui-org/react";
 import { Button } from "@nextui-org/react";
+import { extractDomains, extractStatuses } from "@/lib/urls";
 import { Card, CardBody } from "@nextui-org/react";
 // @ts-ignore
 import TimeAgo from "react-timeago";
@@ -21,26 +22,18 @@ import {
 import { Chip } from "@nextui-org/react";
 import { ErrorIcon, SearchIcon } from "@/components/icons";
 
-type HttpResult = {
-  is_alive: boolean;
-  response_code: number;
-  response_time: string;
-  response_size: number;
-  title: string;
-  url: string;
-  last_success: string;
-  last_failed: string;
-};
+import { HttpResult } from "../types";
 
 export const ResultsTable = () => {
   const [data, setData] = useState<HttpResult[]>([]);
+  const [domains, setDomains] = useState<string[]>([]);
+  const [statuses, setStatuses] = useState<string[]>([]);
   const [filteredData, setFilteredData] = useState<HttpResult[]>([]);
   const [search, setSearch] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = (search: string) => {
     if (!search) {
       setFilteredData(data);
       return;
@@ -56,10 +49,10 @@ export const ResultsTable = () => {
   };
   useEffect(() => {
     fetch(process.env.NEXT_PUBLIC_API_URL as string, {
-        next: {
-            tags: ["api"],
-            revalidate: 1,
-        }
+      next: {
+        tags: ["api"],
+        revalidate: 1,
+      },
     })
       .then((response) => {
         setLoading(false);
@@ -71,10 +64,12 @@ export const ResultsTable = () => {
       })
       .then((data) => {
         if (data instanceof Array) {
-            setData(data);
-            setFilteredData(data);
+          setData(data);
+          setFilteredData(data);
+          setDomains(extractDomains(data));
+          setStatuses(extractStatuses(data));
         } else {
-            setError("Invalid response from server");
+          setError("Invalid response from server");
         }
       })
       .catch((error) => {
@@ -105,30 +100,64 @@ export const ResultsTable = () => {
         </div>
       )}
       {!loading && (
-        <form onSubmit={handleSubmit} className="flex justify-between">
-          <Input
-            classNames={{
-              inputWrapper: "bg-default-100",
-              input: "text-sm",
-            }}
-            value={search}
-            className="mr-5"
-            labelPlacement="outside"
-            placeholder="Type to filter results..."
-            isClearable
-            onClear={() => {
-              setSearch("");
-              setFilteredData(data);
-            }}
-            onChange={(e) => setSearch(e.target.value)}
-            startContent={
-              <SearchIcon className="text-base text-default-400 pointer-events-none flex-shrink-0" />
-            }
-            type="text"
-          />
-          <Button color="default" variant="shadow" type="submit">
-            Filter
-          </Button>
+        <form className="">
+          <div>
+            <Input
+              classNames={{
+                inputWrapper: "bg-default-100",
+                input: "text-sm",
+              }}
+              className="w-full block"
+              value={search}
+              labelPlacement="outside"
+              placeholder="Type to filter results..."
+              isClearable
+              onClear={() => {
+                setSearch("");
+                setFilteredData(data);
+              }}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                handleSubmit(e.target.value);
+              }}
+              startContent={
+                <SearchIcon className="text-base text-default-400 pointer-events-none flex-shrink-0" />
+              }
+              type="text"
+            />
+          </div>
+          <div>
+            {domains.map((domain) => (
+              <Chip
+                key={uuidv4()}
+                color="default"
+                variant={domain == search ? "solid" : "bordered"}
+                className="mt-5 mr-2 cursor-pointer"
+                onClick={() => {
+                  setSearch(domain);
+                  handleSubmit(domain);
+                }}
+              >
+                {domain}
+              </Chip>
+            ))}
+          </div>
+          <div>
+            {statuses.map((status) => (
+              <Chip
+                key={uuidv4()}
+                color={status >= "200" && status < "400" ? "success" : "danger"}
+                variant={status == search ? "solid" : "bordered"}
+                className="mt-5 mr-2 cursor-pointer"
+                onClick={() => {
+                  setSearch(status);
+                  handleSubmit(status);
+                }}
+              >
+                {status}
+              </Chip>
+            ))}
+          </div>
         </form>
       )}
 
@@ -176,9 +205,7 @@ export const ResultsTable = () => {
                 <TableCell
                   className={row.is_alive ? "text-default-400" : "text-danger"}
                 >
-                  <TimeAgo
-                    date={row.last_failed}
-                  />
+                  <TimeAgo date={row.last_failed} />
                   <span className="text-success">
                     {row.last_failed ? "" : "Never Failed"}
                   </span>

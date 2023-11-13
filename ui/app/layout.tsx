@@ -50,7 +50,10 @@ export default function RootLayout({
 							>
 								<span className="text-default-600">Powered by</span>
                                 <GithubIcon size={20} />
-								<p className="text-primary">Aketemite</p>
+								<p className="text-primary">
+                                    Aketemite
+                                </p>
+                                <span>version: {process.env.NEXT_PUBLIC_VERSION as string}</span>
 							</Link>
 						</footer>
 					</div>
