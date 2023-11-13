@@ -4,9 +4,19 @@ import { useState, useEffect } from "react";
 import { Link, input } from "@nextui-org/react";
 import { Spinner } from "@nextui-org/react";
 import { Input } from "@nextui-org/react";
-import { Button } from "@nextui-org/react";
-import { extractDomains, extractStatuses } from "@/lib/urls";
-import { Card, CardBody } from "@nextui-org/react";
+import {
+  Card,
+  CardHeader,
+  CardBody,
+  CardFooter,
+  Divider,
+  Image,
+} from "@nextui-org/react";
+import {
+  extractDomains,
+  extractStatuses,
+  stripTopLevelDomain,
+} from "@/lib/urls";
 // @ts-ignore
 import TimeAgo from "react-timeago";
 // @ts-ignore
@@ -28,6 +38,12 @@ export const ResultsTable = () => {
   const [data, setData] = useState<HttpResult[]>([]);
   const [domains, setDomains] = useState<string[]>([]);
   const [statuses, setStatuses] = useState<string[]>([]);
+  const [isAliveCounter, setIsAliveCounter] = useState<{
+    [key: string]: number;
+  }>({});
+  const [isDeadCounter, setIsDeadCounter] = useState<{ [key: string]: number }>(
+    {}
+  );
   const [filteredData, setFilteredData] = useState<HttpResult[]>([]);
   const [search, setSearch] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
@@ -66,7 +82,11 @@ export const ResultsTable = () => {
         if (data instanceof Array) {
           setData(data);
           setFilteredData(data);
-          setDomains(extractDomains(data));
+          const { uniqDomains, isAliveCounter, isDeadCounter } =
+            extractDomains(data);
+          setDomains(uniqDomains);
+          setIsAliveCounter(isAliveCounter);
+          setIsDeadCounter(isDeadCounter);
           setStatuses(extractStatuses(data));
         } else {
           setError("Invalid response from server");
@@ -126,22 +146,7 @@ export const ResultsTable = () => {
               type="text"
             />
           </div>
-          <div>
-            {domains.map((domain) => (
-              <Chip
-                key={uuidv4()}
-                color="default"
-                variant={domain == search ? "solid" : "bordered"}
-                className="mt-5 mr-2 cursor-pointer"
-                onClick={() => {
-                  setSearch(domain);
-                  handleSubmit(domain);
-                }}
-              >
-                {domain}
-              </Chip>
-            ))}
-          </div>
+
           <div>
             {statuses.map((status) => (
               <Chip
@@ -158,76 +163,133 @@ export const ResultsTable = () => {
               </Chip>
             ))}
           </div>
-        </form>
-      )}
-
-      {!loading && (
-        <Table className="pt-5">
-          <TableHeader>
-            <TableColumn>IS ALIVE</TableColumn>
-            <TableColumn>STATUS</TableColumn>
-            <TableColumn>RESPONSE TIME</TableColumn>
-            <TableColumn>RESPONSE SIZE</TableColumn>
-            <TableColumn>LAST SUCCESS</TableColumn>
-            <TableColumn>LAST FAILED</TableColumn>
-            <TableColumn>URL</TableColumn>
-          </TableHeader>
-          <TableBody emptyContent={"No rows to display."}>
-            {filteredData.map((row) => (
-              <TableRow key={uuidv4()}>
-                <TableCell>
-                  <Chip
-                    color={row.is_alive ? "success" : "danger"}
-                    variant={row.is_alive ? "shadow" : "bordered"}
-                  >
-                    <span className="font-bold">
-                      {row.is_alive ? "YES" : "NO"}
-                    </span>
-                  </Chip>
-                </TableCell>
-                <TableCell
-                  className={
-                    row.is_alive
-                      ? "font-semibold text-success"
-                      : "font-semibold text-danger"
-                  }
-                >
-                  {row.response_code}
-                </TableCell>
-                <TableCell>{row.response_time}</TableCell>
-                <TableCell>{row.response_size}kb</TableCell>
-                <TableCell className="text-default-400">
-                  <TimeAgo date={row.last_success} />
-                  <span className="text-danger">
-                    {row.last_success ? "" : "Never Success"}
-                  </span>
-                </TableCell>
-                <TableCell
-                  className={row.is_alive ? "text-default-400" : "text-danger"}
-                >
-                  <TimeAgo date={row.last_failed} />
-                  <span className="text-success">
-                    {row.last_failed ? "" : "Never Failed"}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <Link isExternal href={row.url} aria-label="Link">
-                    <span className="text-default-400 break-words w-80 text-sm hover:text-default-900">
-                      {truncate(row.title, 100)}
+          <div className="flex flex-wrap">
+            {domains.map((domain) => (
+              <div
+                className="w-1/4 p-2"
+                key={uuidv4()}
+                onClick={() => {
+                  console.log(domain);
+                  setSearch(domain);
+                  handleSubmit(domain);
+                }}
+              >
+                <Card className="mt-5 cursor-pointer hover:shadow-lg hover:bg-opacity-50">
+                  <CardHeader className="flex gap-3">
+                    {isDeadCounter[domain] && (
+                      <ErrorIcon className="text-danger" />
+                    )}
+                    <div className="flex flex-col">
                       <p
                         className={`${
-                          row.is_alive ? "text-violet-600" : "text-danger"
-                        } break-words w-80 hover:underline`}
+                          isDeadCounter[domain] ? "text-danger" : ""
+                        } text-md font-medium capitalize`}
                       >
-                        {truncate(row.url, 150)}
+                        {stripTopLevelDomain(domain)}
                       </p>
-                    </span>
-                  </Link>
-                </TableCell>
-              </TableRow>
+                      <p className="text-small text-default-500">{domain}</p>
+                    </div>
+                  </CardHeader>
+                  <Divider />
+                  <Divider />
+                  <CardFooter className="gap-3">
+                    {isAliveCounter[domain] && (
+                      <div className="flex gap-1">
+                        <p className="font-bold text-default-400 text-small">
+                          {isAliveCounter[domain]}
+                        </p>
+                        <p className="text-default-400 text-small">Alive</p>
+                      </div>
+                    )}
+                    {isDeadCounter[domain] && (
+                      <div className="flex gap-1">
+                        <p className="font-bold text-default-400 text-small">
+                          {isDeadCounter[domain]}
+                        </p>
+                        <p className="text-default-400 text-small">Not Alive</p>
+                      </div>
+                    )}
+                  </CardFooter>
+                </Card>
+              </div>
             ))}
-          </TableBody>
-        </Table>
+          </div>
+        </form>
+      )}
+      {!loading && (
+        <>
+          <span className="text-default-400 float-right">
+            {filteredData.length + " rows"}
+          </span>
+          <Table className="pt-5">
+            <TableHeader>
+              <TableColumn>IS ALIVE</TableColumn>
+              <TableColumn>STATUS</TableColumn>
+              <TableColumn>RESPONSE TIME</TableColumn>
+              <TableColumn>RESPONSE SIZE</TableColumn>
+              <TableColumn>LAST SUCCESS</TableColumn>
+              <TableColumn>LAST FAILED</TableColumn>
+              <TableColumn>URL</TableColumn>
+            </TableHeader>
+            <TableBody emptyContent={"No rows to display."}>
+              {filteredData.map((row) => (
+                <TableRow key={uuidv4()}>
+                  <TableCell>
+                    <Chip
+                      color={row.is_alive ? "success" : "danger"}
+                      variant={row.is_alive ? "shadow" : "bordered"}
+                    >
+                      <span className="font-bold">
+                        {row.is_alive ? "YES" : "NO"}
+                      </span>
+                    </Chip>
+                  </TableCell>
+                  <TableCell
+                    className={
+                      row.is_alive
+                        ? "font-semibold text-success"
+                        : "font-semibold text-danger"
+                    }
+                  >
+                    {row.response_code}
+                  </TableCell>
+                  <TableCell>{row.response_time}</TableCell>
+                  <TableCell>{row.response_size}kb</TableCell>
+                  <TableCell className="text-default-400">
+                    <TimeAgo date={row.last_success} />
+                    <span className="text-danger">
+                      {row.last_success ? "" : "Never Success"}
+                    </span>
+                  </TableCell>
+                  <TableCell
+                    className={
+                      row.is_alive ? "text-default-400" : "text-danger"
+                    }
+                  >
+                    <TimeAgo date={row.last_failed} />
+                    <span className="text-success">
+                      {row.last_failed ? "" : "Never Failed"}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <Link isExternal href={row.url} aria-label="Link">
+                      <span className="text-default-400 break-words w-80 text-sm hover:text-default-900">
+                        {truncate(row.title, 100)}
+                        <p
+                          className={`${
+                            row.is_alive ? "text-violet-600" : "text-danger"
+                          } break-words w-80 hover:underline`}
+                        >
+                          {truncate(row.url, 150)}
+                        </p>
+                      </span>
+                    </Link>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </>
       )}
     </>
   );

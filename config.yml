@@ -14,3 +14,9 @@ urls:
   - name: https://github.com
     timeout: 2000
     crawl: false
+  - name: https://nextui.org
+    timeout: 2000
+    crawl: false
+  - name: https://nextjs.org
+    timeout: 2000
+    crawl: false
