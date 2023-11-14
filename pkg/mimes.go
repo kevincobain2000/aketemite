@@ -46,7 +46,9 @@ func GetContentType(filename string) string {
 }
 
 func SlashIndexFile(filename string) string {
-	if filename[len(filename)-1:] == "/" {
+	if filename == "" {
+		filename = "index.html"
+	} else if filename[len(filename)-1:] == "/" {
 		filename += "index.html"
 	}
 	return filename
