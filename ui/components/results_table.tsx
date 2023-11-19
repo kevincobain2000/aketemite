@@ -30,7 +30,7 @@ import {
   TableCell,
 } from "@nextui-org/react";
 import { Chip } from "@nextui-org/react";
-import { ErrorIcon, SearchIcon } from "@/components/icons";
+import { ErrorIcon,SuccessIcon, WarningIcon, SearchIcon } from "@/components/icons";
 
 import { HttpResult } from "../types";
 
@@ -63,6 +63,7 @@ export const ResultsTable = () => {
     });
     setFilteredData(filtered);
   };
+
   useEffect(() => {
     fetch(process.env.NEXT_PUBLIC_API_URL as string, {
       next: {
@@ -176,18 +177,27 @@ export const ResultsTable = () => {
               >
                 <Card className="mt-5 cursor-pointer hover:shadow-lg hover:bg-opacity-50">
                   <CardHeader className="flex gap-3">
-                    {isDeadCounter[domain] && (
+                    {(isDeadCounter[domain] && !isAliveCounter[domain]) && (
                       <ErrorIcon className="text-danger" />
+                    )}
+                    {(isDeadCounter[domain] && isAliveCounter[domain]) && (
+                      <WarningIcon className="text-warning" />
+                    )}
+                    {!isDeadCounter[domain] && (
+                      <SuccessIcon className="text-success" />
                     )}
                     <div className="flex flex-col">
                       <p
                         className={`${
-                          isDeadCounter[domain] ? "text-danger" : ""
-                        } text-md font-medium capitalize`}
+                        (isDeadCounter[domain] && !isAliveCounter[domain]) ? "text-danger" : "" || (isDeadCounter[domain] && isAliveCounter[domain]) ? "text-warning" : "" || !isDeadCounter[domain] ? "text-success" : ""
+                        } text-md font-light`}
                       >
                         {stripTopLevelDomain(domain)}
                       </p>
-                      <p className="text-small text-default-500">{domain}</p>
+                      <p className="text-small text-default-500">
+
+                        {domain}
+                     </p>
                     </div>
                   </CardHeader>
                   <Divider />
@@ -203,10 +213,10 @@ export const ResultsTable = () => {
                     )}
                     {isDeadCounter[domain] && (
                       <div className="flex gap-1">
-                        <p className="font-bold text-default-400 text-small">
+                        <p className="font-bold text-danger-400 text-small">
                           {isDeadCounter[domain]}
                         </p>
-                        <p className="text-default-400 text-small">Not Alive</p>
+                        <p className="text-danger-400 text-small">Not Alive</p>
                       </div>
                     )}
                   </CardFooter>
@@ -218,7 +228,7 @@ export const ResultsTable = () => {
       )}
       {!loading && (
         <>
-          <span className="text-default-400 float-right">
+          <span className="text-default-400 float-right font-bold text-sm">
             {filteredData.length + " rows"}
           </span>
           <Table className="pt-5">
@@ -273,7 +283,7 @@ export const ResultsTable = () => {
                   </TableCell>
                   <TableCell>
                     <Link isExternal href={row.url} aria-label="Link">
-                      <span className="text-default-400 break-words w-80 text-sm hover:text-default-900">
+                      <span className="text-default-500 break-words w-80 text-sm hover:text-default-900">
                         {truncate(row.title, 100)}
                         <p
                           className={`${
@@ -284,6 +294,26 @@ export const ResultsTable = () => {
                         </p>
                       </span>
                     </Link>
+                    <p className="font-semibold text-default-400 text-xs pt-1">
+                        {/* {row.http_assets.js_assets.alive > 0 && (
+                            <span className="pr-2 text-default-300">JS alive {row.http_assets.js_assets.alive}</span>
+                        )}
+                        {row.http_assets.css_assets.alive > 0 && (
+                            <span className="pr-2 text-default-300">CSS alive {row.http_assets.css_assets.alive}</span>
+                        )}
+                        {row.http_assets.img_assets.alive > 0 && (
+                            <span className="pr-2 text-default-300">IMG alive {row.http_assets.img_assets.alive}</span>
+                        )} */}
+                        {row.http_assets.js_assets.dead > 0 && (
+                            <span className="pr-2 text-danger">JS dead {row.http_assets.js_assets.dead}</span>
+                        )}
+                        {row.http_assets.css_assets.dead > 0 && (
+                            <span className="pr-2 text-danger">CSS dead {row.http_assets.css_assets.dead}</span>
+                        )}
+                        {row.http_assets.img_assets.dead > 0 && (
+                            <span className="pr-2 text-danger">IMG dead {row.http_assets.img_assets.dead}</span>
+                        )}
+                    </p>
                   </TableCell>
                 </TableRow>
               ))}

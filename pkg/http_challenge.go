@@ -3,7 +3,6 @@ package pkg
 import (
 	"encoding/json"
 	"fmt"
-	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -22,20 +21,30 @@ const (
 )
 
 type HttpResult struct {
-	IsAlive      bool   `json:"is_alive"`
-	ResponseCode int    `json:"response_code"`
-	ResponseTime string `json:"response_time"`
-	ResponseSize int    `json:"response_size"`
-	Title        string `json:"title"`
-	Url          string `json:"url"`
-	LastFailed   string `json:"last_failed"`
-	LastSuccess  string `json:"last_success"`
+	IsAlive      bool       `json:"is_alive"`
+	ResponseCode int        `json:"response_code"`
+	ResponseTime string     `json:"response_time"`
+	ResponseSize int        `json:"response_size"`
+	Title        string     `json:"title"`
+	Url          string     `json:"url"`
+	LastFailed   string     `json:"last_failed"`
+	LastSuccess  string     `json:"last_success"`
+	HttpAssets   HttpAssets `json:"http_assets"`
 }
 
 type HttpChallenge struct {
 	browse *browser.Browser
 	crawl  bool
 	Result HttpResult
+}
+type HttpAsset struct {
+	Alive int `json:"alive"`
+	Dead  int `json:"dead"`
+}
+type HttpAssets struct {
+	JsAssets  HttpAsset `json:"js_assets"`
+	ImgAssets HttpAsset `json:"img_assets"`
+	CssAssets HttpAsset `json:"css_assets"`
 }
 
 func NewHttpChallenge(timeout time.Duration, crawl bool) *HttpChallenge {
@@ -137,6 +146,67 @@ func updateCache(responseData []HttpResult, cache *diskv.Diskv) []HttpResult {
 	return newResponseData
 }
 
+func (hc *HttpChallenge) pingHttpAssets(url URLConfig) HttpAssets {
+	assets := HttpAssets{}
+
+	tagsAttribute := map[string]string{
+		"script": "src",
+		"img":    "src",
+		"link":   "href",
+	}
+	for tag, attribute := range tagsAttribute {
+		hc.browse.Find(tag).Each(func(_ int, s *goquery.Selection) {
+			src, exists := s.Attr(attribute)
+			if !exists {
+				return
+			}
+
+			hcc := NewHttpChallenge(time.Duration(url.Timeout), false)
+			src = hc.relativeToAbsoluteURL(src)
+
+			if !strings.HasPrefix(src, "http") && !strings.HasPrefix(src, "//") {
+				src = fmt.Sprintf("%s://%s%s", hc.browse.Url().Scheme, hc.browse.Url().Host, src)
+			} else if strings.HasPrefix(src, "//") {
+				src = fmt.Sprintf("%s:%s", hc.browse.Url().Scheme, src)
+			} else if strings.HasPrefix(src, "/") {
+				src = fmt.Sprintf("%s://%s%s", hc.browse.Url().Scheme, hc.browse.Url().Host, src)
+			} else if strings.HasPrefix(src, "./") {
+				src = fmt.Sprintf("%s://%s%s", hc.browse.Url().Scheme, hc.browse.Url().Host, src[1:])
+			} else if strings.HasPrefix(src, "../") {
+				src = fmt.Sprintf("%s://%s%s", hc.browse.Url().Scheme, hc.browse.Url().Host, src[2:])
+			}
+
+			if !IsURL2SubsetOfURL1(hc.browse.Url().Scheme+"://"+hc.browse.Url().Host, src) {
+				return
+			}
+			Logger().Info("Pinging asset: ", src)
+
+			hcc.ping(src)
+
+			// if src endswith .js
+			if strings.HasSuffix(src, ".js") {
+				if hcc.Result.IsAlive {
+					assets.JsAssets.Alive++
+				} else {
+					assets.JsAssets.Dead++
+				}
+			} else if strings.HasSuffix(src, ".css") {
+				if hcc.Result.IsAlive {
+					assets.CssAssets.Alive++
+				} else {
+					assets.CssAssets.Dead++
+				}
+			} else if strings.HasSuffix(src, ".png") || strings.HasSuffix(src, ".jpg") || strings.HasSuffix(src, ".jpeg") || strings.HasSuffix(src, ".gif") || strings.HasSuffix(src, ".svg") {
+				if hcc.Result.IsAlive {
+					assets.ImgAssets.Alive++
+				} else {
+					assets.ImgAssets.Dead++
+				}
+			}
+		})
+	}
+	return assets
+}
 func (hc *HttpChallenge) ping(url string) {
 	// response timer
 	start := time.Now()
@@ -156,6 +226,7 @@ func (hc *HttpChallenge) ping(url string) {
 			ResponseSize: 0,
 			LastFailed:   "",
 			LastSuccess:  "",
+			HttpAssets:   HttpAssets{},
 		}
 	} else {
 		result = HttpResult{
@@ -167,6 +238,15 @@ func (hc *HttpChallenge) ping(url string) {
 			ResponseSize: hc.responseSize(hc.browse.Body()),
 			LastFailed:   "",
 			LastSuccess:  "",
+		}
+		if hc.crawl {
+			result.HttpAssets = hc.pingHttpAssets(URLConfig{
+				Name:    url,
+				Timeout: 10000,
+				Crawl:   false,
+			})
+		} else {
+			result.HttpAssets = HttpAssets{}
 		}
 	}
 	if !result.IsAlive {
@@ -204,7 +284,7 @@ func (hc *HttpChallenge) crawlhrefs(url string) []string {
 		}
 		href = hc.relativeToAbsoluteURL(href)
 
-		isSubset := hc.isURL2SubsetOfURL1(url, href)
+		isSubset := IsURL2SubsetOfURL1(url, href)
 		if isSubset {
 			urls = append(urls, href)
 		}
@@ -218,59 +298,4 @@ func (hc *HttpChallenge) relativeToAbsoluteURL(href string) string {
 		href = fmt.Sprintf("%s://%s%s", hc.browse.Url().Scheme, hc.browse.Url().Host, href)
 	}
 	return href
-}
-
-func (hc *HttpChallenge) isURL2SubsetOfURL1(url1 string, url2 string) bool {
-	// Parse both URLs
-	parsedURL1, err := url.Parse(url1)
-	if err != nil {
-		return false
-	}
-
-	parsedURL2, err := url.Parse(url2)
-	if err != nil {
-		return false
-	}
-
-	// Check the scheme
-	if parsedURL1.Scheme != parsedURL2.Scheme {
-		return false
-	}
-
-	// Check if url2's host is the same as or a subdomain of url1's host
-	if !isSubdomainOrSame(parsedURL1.Host, parsedURL2.Host) {
-		return false
-	}
-
-	// Existing path prefix check
-	if !strings.HasPrefix(parsedURL2.Path, parsedURL1.Path) {
-		return false
-	}
-
-	// Existing query parameter check
-	params1 := parsedURL1.Query()
-	params2 := parsedURL2.Query()
-
-	for key, values := range params1 {
-		if val2, ok := params2[key]; !ok || !IsEqualSlice(values, val2) {
-			return false
-		}
-	}
-
-	return true
-}
-
-// Helper function to check if one host is a subdomain of another
-func isSubdomainOrSame(baseHost, subHost string) bool {
-	// If hosts are identical
-	if baseHost == subHost {
-		return true
-	}
-
-	// If subHost is a subdomain of baseHost
-	if strings.HasSuffix(subHost, "."+baseHost) {
-		return true
-	}
-
-	return false
 }
