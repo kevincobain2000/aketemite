@@ -4,13 +4,14 @@ import { useState, useEffect } from "react";
 import { Link, input } from "@nextui-org/react";
 import { Spinner } from "@nextui-org/react";
 import { Input } from "@nextui-org/react";
+// import next js image
+import Image from "next/image";
 import {
   Card,
   CardHeader,
   CardBody,
   CardFooter,
   Divider,
-  Image,
 } from "@nextui-org/react";
 import {
   extractDomains,
@@ -46,6 +47,7 @@ export const ResultsTable = () => {
   const [isAliveCounter, setIsAliveCounter] = useState<{
     [key: string]: number;
   }>({});
+  const [ogImages, setOgImages] = useState<{ [key: string]: string }>({});
   const [isDeadCounter, setIsDeadCounter] = useState<{ [key: string]: number }>(
     {}
   );
@@ -88,11 +90,12 @@ export const ResultsTable = () => {
         if (data instanceof Array) {
           setData(data);
           setFilteredData(data);
-          const { uniqDomains, isAliveCounter, isDeadCounter } =
+          const { uniqDomains, isAliveCounter, isDeadCounter, ogImages } =
             extractDomains(data);
           setDomains(uniqDomains);
           setIsAliveCounter(isAliveCounter);
           setIsDeadCounter(isDeadCounter);
+          setOgImages(ogImages);
           setStatuses(extractStatuses(data));
         } else {
           setError("Invalid response from server");
@@ -175,7 +178,6 @@ export const ResultsTable = () => {
                 className="w-1/4 p-2"
                 key={uuidv4()}
                 onClick={() => {
-                  console.log(domain);
                   setSearch(domain);
                   handleSubmit(domain);
                 }}
@@ -191,6 +193,16 @@ export const ResultsTable = () => {
                     {!isDeadCounter[domain] && (
                       <SuccessIcon className="text-success" />
                     )}
+                    <Image
+                      src={ogImages[domain] ?? `//${domain}/favicon.ico`}
+                      alt="image"
+                      width={40}
+                      height={40}
+                      onError={(e) => {
+                        e.currentTarget.src = "/aketemite/favicon.ico";
+                      }}
+                      objectFit="contain"
+                    />
                     <div className="flex flex-col">
                       <p
                         className={`${
@@ -225,7 +237,9 @@ export const ResultsTable = () => {
                         <p className="font-bold text-danger-400 text-small">
                           {isDeadCounter[domain]}
                         </p>
-                        <p className="text-danger-400 text-small">Not Alive</p>
+                        <p className="text-danger-400 text-small font-bold">
+                          Not Alive
+                        </p>
                       </div>
                     )}
                   </CardFooter>
@@ -276,13 +290,15 @@ export const ResultsTable = () => {
                   <TableCell>{row.response_size}kb</TableCell>
                   <TableCell className="text-default-400">
                     <TimeAgo date={row.last_success} />
-                    <span className="text-danger">
+                    <span className="text-danger font-bold">
                       {row.last_success ? "" : "Never Success"}
                     </span>
                   </TableCell>
                   <TableCell
                     className={
-                      row.is_alive ? "text-default-400" : "text-danger"
+                      row.is_alive
+                        ? "text-default-400"
+                        : "text-danger font-bold"
                     }
                   >
                     <TimeAgo date={row.last_failed} />
@@ -291,44 +307,68 @@ export const ResultsTable = () => {
                     </span>
                   </TableCell>
                   <TableCell>
-                    <Link isExternal href={row.url} aria-label="Link">
-                      <span className="text-default-500 break-words w-80 text-sm hover:text-default-900">
-                        {truncate(row.title, 100)}
-                        <p
-                          className={`${
-                            row.is_alive ? "text-violet-600" : "text-danger"
-                          } break-words w-80 hover:underline`}
-                        >
-                          {truncate(row.url, 150)}
-                        </p>
-                      </span>
-                    </Link>
-                    <p className="font-semibold text-default-400 text-xs pt-1">
-                      {/* {row.http_assets.js_assets.alive > 0 && (
-                            <span className="pr-2 text-default-300">JS alive {row.http_assets.js_assets.alive}</span>
-                        )}
-                        {row.http_assets.css_assets.alive > 0 && (
-                            <span className="pr-2 text-default-300">CSS alive {row.http_assets.css_assets.alive}</span>
-                        )}
-                        {row.http_assets.img_assets.alive > 0 && (
-                            <span className="pr-2 text-default-300">IMG alive {row.http_assets.img_assets.alive}</span>
-                        )} */}
-                      {row.http_assets.js_assets.dead > 0 && (
-                        <span className="pr-2 text-danger">
-                          JS dead {row.http_assets.js_assets.dead}
-                        </span>
-                      )}
-                      {row.http_assets.css_assets.dead > 0 && (
-                        <span className="pr-2 text-danger">
-                          CSS dead {row.http_assets.css_assets.dead}
-                        </span>
-                      )}
-                      {row.http_assets.img_assets.dead > 0 && (
-                        <span className="pr-2 text-danger">
-                          IMG dead {row.http_assets.img_assets.dead}
-                        </span>
-                      )}
-                    </p>
+                    <Card className="max-w-[400px]">
+                      <CardHeader className="flex gap-3">
+                        <Image
+                          src={row.og_image}
+                          alt="image"
+                          width={40}
+                          height={40}
+                          onError={(e) => {
+                            e.currentTarget.src = "/aketemite/favicon.ico";
+                          }}
+                          objectFit="contain"
+                        />
+                        <div className="flex flex-col">
+                          <p className="text-md font-semibold">
+                            {truncate(row.title, 100)}
+                          </p>
+                          <p className="text-small text-default-500">
+                            {truncate(row.description, 100)}
+                          </p>
+                        </div>
+                      </CardHeader>
+                      <Divider />
+                      <CardBody>
+                        <Link isExternal href={row.url} aria-label="Link">
+                          <span className="text-default-500 break-words w-80 text-sm hover:text-default-900">
+                            <p
+                              className={`${
+                                row.is_alive
+                                  ? "text-violet-600"
+                                  : "text-danger font-bold"
+                              }
+                              break-words w-80 hover:underline`}
+                            >
+                              {truncate(row.url, 150)}
+                            </p>
+                          </span>
+                        </Link>
+                      </CardBody>
+                      {row.http_assets.js_assets.dead > 0 ||
+                        row.http_assets.css_assets.dead > 0 ||
+                        (row.http_assets.img_assets.dead > 0 && (
+                          <CardFooter>
+                            <p className="text-default-400 text-xs">
+                              {row.http_assets.js_assets.dead > 0 && (
+                                <span className="pr-2 text-danger">
+                                  JS errors {row.http_assets.js_assets.dead},
+                                </span>
+                              )}
+                              {row.http_assets.css_assets.dead > 0 && (
+                                <span className="pr-2 text-danger">
+                                  CSS errors {row.http_assets.css_assets.dead},
+                                </span>
+                              )}
+                              {row.http_assets.img_assets.dead > 0 && (
+                                <span className="pr-2 text-danger">
+                                  IMG errors {row.http_assets.img_assets.dead}
+                                </span>
+                              )}
+                            </p>
+                          </CardFooter>
+                        ))}
+                    </Card>
                   </TableCell>
                 </TableRow>
               ))}

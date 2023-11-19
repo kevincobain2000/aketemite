@@ -25,14 +25,14 @@ func StringToMD5Hash(s string) string {
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
-func IsURL2SubsetOfURL1(url1, url2 string) bool {
+func IsURL2SubsetOfURL1(u1, u2 string) bool {
 	// Parse both URLs
-	parsedURL1, err := url.Parse(url1)
+	parsedURL1, err := url.Parse(u1)
 	if err != nil {
 		return false
 	}
 
-	parsedURL2, err := url.Parse(url2)
+	parsedURL2, err := url.Parse(u2)
 	if err != nil {
 		return false
 	}
@@ -42,7 +42,7 @@ func IsURL2SubsetOfURL1(url1, url2 string) bool {
 		return false
 	}
 
-	// Normalize hosts and check if url2's host is the same as or a subdomain of url1's host
+	// Normalize hosts and check if u2's host is the same as or a subdomain of u1's host
 	if !isSubdomainOrSame(normalizeHost(parsedURL1.Host), normalizeHost(parsedURL2.Host)) {
 		return false
 	}
@@ -81,9 +81,17 @@ func isSubdomainOrSame(baseHost, subHost string) bool {
 	return false
 }
 
-func RemoveAnyQueryParam(url string) string {
-	if strings.Contains(url, "?") {
-		return strings.Split(url, "?")[0]
+func RemoveAnyQueryParam(u string) string {
+	if strings.Contains(u, "?") {
+		return strings.Split(u, "?")[0]
 	}
-	return url
+	return u
+}
+
+func GetBaseURL(u string) string {
+	parsedURL, err := url.Parse(u)
+	if err != nil {
+		return ""
+	}
+	return parsedURL.Scheme + "://" + parsedURL.Host
 }

@@ -26,8 +26,10 @@ type HttpResult struct {
 	ResponseTime string     `json:"response_time"`
 	ResponseSize int        `json:"response_size"`
 	Title        string     `json:"title"`
+	Description  string     `json:"description"`
 	Url          string     `json:"url"`
 	LastFailed   string     `json:"last_failed"`
+	OGImage      string     `json:"og_image"`
 	LastSuccess  string     `json:"last_success"`
 	HttpAssets   HttpAssets `json:"http_assets"`
 }
@@ -146,6 +148,48 @@ func updateCache(responseData []HttpResult, cache *diskv.Diskv) []HttpResult {
 	return newResponseData
 }
 
+func (hc *HttpChallenge) getOGImage() string {
+	ogImage := ""
+	hc.browse.Find("meta[property='og:image']").Each(func(_ int, s *goquery.Selection) {
+		src, exists := s.Attr("content")
+		if !exists {
+			return
+		}
+		ogImage = src
+	})
+	if hc.Result.OGImage == "" {
+		// set as favicon
+		hc.browse.Find("link[rel='shortcut icon']").Each(func(_ int, s *goquery.Selection) {
+			src, exists := s.Attr("href")
+			if !exists {
+				return
+			}
+			ogImage = src
+		})
+	}
+	if hc.Result.OGImage == "" {
+		// set as favicon
+		hc.browse.Find("link[rel='icon']").Each(func(_ int, s *goquery.Selection) {
+			src, exists := s.Attr("href")
+			if !exists {
+				return
+			}
+			ogImage = src
+		})
+	}
+	ogImage = hc.relativeToAbsoluteURL(ogImage)
+	if strings.HasPrefix(ogImage, "//") {
+		ogImage = fmt.Sprintf("%s:%s", hc.browse.Url().Scheme, ogImage)
+	} else if strings.HasPrefix(ogImage, "/") {
+		ogImage = fmt.Sprintf("%s://%s%s", hc.browse.Url().Scheme, hc.browse.Url().Host, ogImage)
+	} else if strings.HasPrefix(ogImage, "./") {
+		ogImage = fmt.Sprintf("%s://%s%s", hc.browse.Url().Scheme, hc.browse.Url().Host, ogImage[1:])
+	}
+	if ogImage == "" {
+		ogImage = GetBaseURL(hc.browse.Url().String()) + "/favicon.ico"
+	}
+	return ogImage
+}
 func (hc *HttpChallenge) pingHttpAssets(url URLConfig) HttpAssets {
 	assets := HttpAssets{}
 
@@ -222,32 +266,34 @@ func (hc *HttpChallenge) ping(url string) {
 			IsAlive:      false,
 			ResponseCode: 0,
 			Title:        "",
+			Description:  "",
 			Url:          url,
 			ResponseTime: elapsed.String(),
 			ResponseSize: 0,
 			LastFailed:   "",
 			LastSuccess:  "",
 			HttpAssets:   HttpAssets{},
+			OGImage:      "",
 		}
 	} else {
 		result = HttpResult{
 			IsAlive:      hc.isStatusSuccess(hc.browse.StatusCode()),
 			ResponseCode: hc.browse.StatusCode(),
 			Title:        hc.browse.Title(),
+			Description:  hc.browse.Find("meta[name='description']").AttrOr("content", ""),
 			Url:          url,
 			ResponseTime: elapsed.String(),
 			ResponseSize: hc.responseSize(hc.browse.Body()),
 			LastFailed:   "",
 			LastSuccess:  "",
 		}
+		result.OGImage = hc.getOGImage()
 		if hc.crawl {
 			result.HttpAssets = hc.pingHttpAssets(URLConfig{
 				Name:    url,
 				Timeout: 10000,
 				Crawl:   false,
 			})
-		} else {
-			result.HttpAssets = HttpAssets{}
 		}
 	}
 	if !result.IsAlive {

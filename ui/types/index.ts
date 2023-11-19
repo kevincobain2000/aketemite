@@ -20,9 +20,11 @@ export type HttpResult = {
     response_time: string;
     response_size: number;
     title: string;
+    description: string;
     url: string;
     last_success: string;
     last_failed: string;
     http_assets: HttpAssets;
+    og_image: string;
   };
 

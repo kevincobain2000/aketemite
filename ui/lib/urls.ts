@@ -1,10 +1,10 @@
 import {HttpResult} from "../types";
 export const extractDomains = (input: HttpResult[]): any => {
     const domainSet = new Set<string>();
+    const ogImages: Record<string, string> = {};
 
     const isAliveCounter: {[key: string]: number} = {};
     const isDeadCounter: {[key: string]: number} = {};
-
     input.forEach(obj => {
         try {
             const url = new URL(obj.url);
@@ -21,10 +21,18 @@ export const extractDomains = (input: HttpResult[]): any => {
         }
     });
 
+    input.forEach(obj => {
+        let domain = '';
+        // remove schema from obj.url
+        domain = obj.url.replace(/(^\w+:|^)\/\//, '');
+        ogImages[domain] = obj.og_image
+    });
+
     return {
         uniqDomains: Array.from(domainSet),
         isAliveCounter,
-        isDeadCounter
+        isDeadCounter,
+        ogImages
     }
 }
 
