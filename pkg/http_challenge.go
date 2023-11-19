@@ -182,21 +182,22 @@ func (hc *HttpChallenge) pingHttpAssets(url URLConfig) HttpAssets {
 			Logger().Info("Pinging asset: ", src)
 
 			hcc.ping(src)
+			srcWithoutQuery := RemoveAnyQueryParam(src)
 
 			// if src endswith .js
-			if strings.HasSuffix(src, ".js") {
+			if strings.HasSuffix(srcWithoutQuery, ".js") {
 				if hcc.Result.IsAlive {
 					assets.JsAssets.Alive++
 				} else {
 					assets.JsAssets.Dead++
 				}
-			} else if strings.HasSuffix(src, ".css") {
+			} else if strings.HasSuffix(srcWithoutQuery, ".css") {
 				if hcc.Result.IsAlive {
 					assets.CssAssets.Alive++
 				} else {
 					assets.CssAssets.Dead++
 				}
-			} else if strings.HasSuffix(src, ".png") || strings.HasSuffix(src, ".jpg") || strings.HasSuffix(src, ".jpeg") || strings.HasSuffix(src, ".gif") || strings.HasSuffix(src, ".svg") {
+			} else if strings.HasSuffix(srcWithoutQuery, ".png") || strings.HasSuffix(srcWithoutQuery, ".jpg") || strings.HasSuffix(srcWithoutQuery, ".jpeg") || strings.HasSuffix(srcWithoutQuery, ".gif") || strings.HasSuffix(srcWithoutQuery, ".svg") {
 				if hcc.Result.IsAlive {
 					assets.ImgAssets.Alive++
 				} else {

@@ -80,3 +80,10 @@ func isSubdomainOrSame(baseHost, subHost string) bool {
 	}
 	return false
 }
+
+func RemoveAnyQueryParam(url string) string {
+	if strings.Contains(url, "?") {
+		return strings.Split(url, "?")[0]
+	}
+	return url
+}
