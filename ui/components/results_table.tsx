@@ -30,7 +30,12 @@ import {
   TableCell,
 } from "@nextui-org/react";
 import { Chip } from "@nextui-org/react";
-import { ErrorIcon,SuccessIcon, WarningIcon, SearchIcon } from "@/components/icons";
+import {
+  ErrorIcon,
+  SuccessIcon,
+  WarningIcon,
+  SearchIcon,
+} from "@/components/icons";
 
 import { HttpResult } from "../types";
 
@@ -177,10 +182,10 @@ export const ResultsTable = () => {
               >
                 <Card className="mt-5 cursor-pointer hover:shadow-lg hover:bg-opacity-50">
                   <CardHeader className="flex gap-3">
-                    {(isDeadCounter[domain] && !isAliveCounter[domain]) && (
+                    {isDeadCounter[domain] && !isAliveCounter[domain] && (
                       <ErrorIcon className="text-danger" />
                     )}
-                    {(isDeadCounter[domain] && isAliveCounter[domain]) && (
+                    {isDeadCounter[domain] && isAliveCounter[domain] && (
                       <WarningIcon className="text-warning" />
                     )}
                     {!isDeadCounter[domain] && (
@@ -189,15 +194,19 @@ export const ResultsTable = () => {
                     <div className="flex flex-col">
                       <p
                         className={`${
-                        (isDeadCounter[domain] && !isAliveCounter[domain]) ? "text-danger" : "" || (isDeadCounter[domain] && isAliveCounter[domain]) ? "text-warning" : "" || !isDeadCounter[domain] ? "text-success" : ""
+                          isDeadCounter[domain] && !isAliveCounter[domain]
+                            ? "text-danger"
+                            : "" ||
+                              (isDeadCounter[domain] && isAliveCounter[domain])
+                            ? "text-warning"
+                            : "" || !isDeadCounter[domain]
+                            ? "text-success"
+                            : ""
                         } text-md font-light`}
                       >
                         {stripTopLevelDomain(domain)}
                       </p>
-                      <p className="text-small text-default-500">
-
-                        {domain}
-                     </p>
+                      <p className="text-small text-default-500">{domain}</p>
                     </div>
                   </CardHeader>
                   <Divider />
@@ -295,7 +304,7 @@ export const ResultsTable = () => {
                       </span>
                     </Link>
                     <p className="font-semibold text-default-400 text-xs pt-1">
-                        {/* {row.http_assets.js_assets.alive > 0 && (
+                      {/* {row.http_assets.js_assets.alive > 0 && (
                             <span className="pr-2 text-default-300">JS alive {row.http_assets.js_assets.alive}</span>
                         )}
                         {row.http_assets.css_assets.alive > 0 && (
@@ -304,15 +313,21 @@ export const ResultsTable = () => {
                         {row.http_assets.img_assets.alive > 0 && (
                             <span className="pr-2 text-default-300">IMG alive {row.http_assets.img_assets.alive}</span>
                         )} */}
-                        {row.http_assets.js_assets.dead > 0 && (
-                            <span className="pr-2 text-danger">JS dead {row.http_assets.js_assets.dead}</span>
-                        )}
-                        {row.http_assets.css_assets.dead > 0 && (
-                            <span className="pr-2 text-danger">CSS dead {row.http_assets.css_assets.dead}</span>
-                        )}
-                        {row.http_assets.img_assets.dead > 0 && (
-                            <span className="pr-2 text-danger">IMG dead {row.http_assets.img_assets.dead}</span>
-                        )}
+                      {row.http_assets.js_assets.dead > 0 && (
+                        <span className="pr-2 text-danger">
+                          JS dead {row.http_assets.js_assets.dead}
+                        </span>
+                      )}
+                      {row.http_assets.css_assets.dead > 0 && (
+                        <span className="pr-2 text-danger">
+                          CSS dead {row.http_assets.css_assets.dead}
+                        </span>
+                      )}
+                      {row.http_assets.img_assets.dead > 0 && (
+                        <span className="pr-2 text-danger">
+                          IMG dead {row.http_assets.img_assets.dead}
+                        </span>
+                      )}
                     </p>
                   </TableCell>
                 </TableRow>
