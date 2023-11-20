@@ -59,7 +59,7 @@ urls:
 
 **UI:** localhost:3000/aketemite
 **API:** localhost:3000/aketemite/api
-**Logs:** `tail -f logs/app.log`
+**Logs:** `tail -f logs/aketemite.log`
 
 ## Screenshots
 

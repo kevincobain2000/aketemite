@@ -14,7 +14,7 @@ var (
 )
 
 const (
-	DEFAULT_LOG_FILE = "logs/app.log"
+	DEFAULT_LOG_FILE = "./logs/aketemite.log"
 )
 
 func Logger() *logrus.Logger {
