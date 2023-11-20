@@ -9,6 +9,7 @@ require (
 	github.com/labstack/echo/v4 v4.11.3
 	github.com/peterbourgon/diskv/v3 v3.0.1
 	github.com/sirupsen/logrus v1.9.3
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gopkg.in/yaml.v3 v3.0.1
 )
 

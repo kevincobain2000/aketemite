@@ -45,6 +45,9 @@ func main() {
 
 	config := pkg.NewConfig(configPath)
 
+	fmt.Println("Echo initialized")
+	fmt.Println("Starting server on localhost:" + port + BASE_PATH)
+
 	e := pkg.NewEcho()
 
 	e.GET(BASE_PATH+"/api", func(c echo.Context) error {
