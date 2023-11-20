@@ -23,17 +23,13 @@
 
 ## Getting Started
 
+**Step 1)** Install aketemite
+
 ```sh
 curl -sLk https://raw.githubusercontent.com/kevincobain2000/aketemite/master/install.sh | sh
 ```
 
-```sh
-./aketemite --config=path=config.yml
-```
-
-localhost:3000/aketemite
-
-## Screenshots
+**Step 2)** Prepare config.yml
 
 ```yml
 # config.yml
@@ -52,6 +48,20 @@ urls:
     crawl: false
 
 ```
+
+**Step 3)** Start application
+
+```sh
+./aketemite --config=path=config.yml
+```
+
+**Step 4)** Confirm application
+
+**UI:** localhost:3000/aketemite
+**API:** localhost:3000/aketemite/api
+**Logs:** `tail -f logs/app.log`
+
+## Screenshots
 
 ![Screenshot](https://imgur.com/cdKYfYK.png)
 
@@ -74,21 +84,18 @@ urls:
 
 ## Development Notes
 
-```sh
-air
+**API**
 
-cd ui/
-npm install
-npm run dev
+```sh
+#starts api on port localhost:3001/aketemite/api
+air
 ```
 
-## Release Notes
+**UI**
 
 ```sh
 cd ui/
 npm install
-npm run build
-
-cd ..
-go build -o aketemite main.go
+#starts ui on port localhost:3001/aketemite
+npm run dev
 ```
