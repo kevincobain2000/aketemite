@@ -48,6 +48,9 @@ export const ResultsTable = () => {
     [key: string]: number;
   }>({});
   const [ogImages, setOgImages] = useState<{ [key: string]: string }>({});
+  const [isDeadAssetsCounter, setIsDeadAssetsCounter] = useState<{
+    [key: string]: number;
+  }>({});
   const [isDeadCounter, setIsDeadCounter] = useState<{ [key: string]: number }>(
     {}
   );
@@ -90,12 +93,18 @@ export const ResultsTable = () => {
         if (data instanceof Array) {
           setData(data);
           setFilteredData(data);
-          const { uniqDomains, isAliveCounter, isDeadCounter, ogImages } =
-            extractDomains(data);
+          const {
+            uniqDomains,
+            isAliveCounter,
+            isDeadCounter,
+            ogImages,
+            isDeadAssetsCounter,
+          } = extractDomains(data);
           setDomains(uniqDomains);
           setIsAliveCounter(isAliveCounter);
           setIsDeadCounter(isDeadCounter);
           setOgImages(ogImages);
+          setIsDeadAssetsCounter(isDeadAssetsCounter);
           setStatuses(extractStatuses(data));
         } else {
           setError("Invalid response from server");
@@ -193,6 +202,9 @@ export const ResultsTable = () => {
                     {!isDeadCounter[domain] && (
                       <SuccessIcon className="text-success" />
                     )}
+                    {isDeadAssetsCounter[domain] > 0 && (
+                      <WarningIcon className="text-warning" />
+                    )}
                     <Image
                       src={ogImages[domain] ?? `//${domain}/favicon.ico`}
                       alt="image"
@@ -230,6 +242,11 @@ export const ResultsTable = () => {
                           {isAliveCounter[domain]}
                         </p>
                         <p className="text-default-400 text-small">Alive</p>
+                        {isDeadAssetsCounter[domain] && (
+                          <p className="text-warning text-small">
+                            {isDeadAssetsCounter[domain]} Dead Assets
+                          </p>
+                        )}
                       </div>
                     )}
                     {isDeadCounter[domain] && (
@@ -334,40 +351,48 @@ export const ResultsTable = () => {
                           <span className="text-default-500 break-words w-80 text-sm hover:text-default-900">
                             <p
                               className={`${
-                                row.is_alive
+                                row.http_assets.js_assets.dead +
+                                  row.http_assets.css_assets.dead +
+                                  row.http_assets.img_assets.dead >
+                                0
+                                  ? "text-warning-500"
+                                  : row.is_alive
                                   ? "text-violet-600"
                                   : "text-danger font-bold"
-                              }
-                              break-words w-80 hover:underline`}
+                              } break-words w-80 hover:underline`}
                             >
                               {truncate(row.url, 150)}
                             </p>
                           </span>
                         </Link>
                       </CardBody>
-                      {row.http_assets.js_assets.dead > 0 ||
-                        row.http_assets.css_assets.dead > 0 ||
-                        (row.http_assets.img_assets.dead > 0 && (
+                      {row.http_assets.js_assets.dead +
+                        row.http_assets.css_assets.dead +
+                        row.http_assets.img_assets.dead >
+                        0 && (
+                        <>
+                          <Divider />
                           <CardFooter>
-                            <p className="text-default-400 text-xs">
+                            <p className="text-default-500 text-xs">
                               {row.http_assets.js_assets.dead > 0 && (
-                                <span className="pr-2 text-danger">
-                                  JS errors {row.http_assets.js_assets.dead},
+                                <span className="pr-2 font-semibold">
+                                  JS errors {row.http_assets.js_assets.dead}
                                 </span>
                               )}
                               {row.http_assets.css_assets.dead > 0 && (
-                                <span className="pr-2 text-danger">
-                                  CSS errors {row.http_assets.css_assets.dead},
+                                <span className="pr-2 font-semibold">
+                                  CSS errors {row.http_assets.css_assets.dead}
                                 </span>
                               )}
                               {row.http_assets.img_assets.dead > 0 && (
-                                <span className="pr-2 text-danger">
+                                <span className="pr-2 font-semibold">
                                   IMG errors {row.http_assets.img_assets.dead}
                                 </span>
                               )}
                             </p>
                           </CardFooter>
-                        ))}
+                        </>
+                      )}
                     </Card>
                   </TableCell>
                 </TableRow>

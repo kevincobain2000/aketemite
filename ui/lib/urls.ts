@@ -5,6 +5,7 @@ export const extractDomains = (input: HttpResult[]): any => {
 
     const isAliveCounter: {[key: string]: number} = {};
     const isDeadCounter: {[key: string]: number} = {};
+    const isDeadAssetsCounter: {[key: string]: number} = {};
     input.forEach(obj => {
         try {
             const url = new URL(obj.url);
@@ -15,6 +16,12 @@ export const extractDomains = (input: HttpResult[]): any => {
             } else {
                 isDeadCounter[url.hostname] = isDeadCounter[url.hostname] || 0;
                 isDeadCounter[url.hostname]++;
+            }
+            if (obj.http_assets.js_assets.dead + obj.http_assets.css_assets.dead + obj.http_assets.img_assets.dead > 0) {
+                if (!isDeadAssetsCounter[url.hostname]) {
+                    isDeadAssetsCounter[url.hostname] = 0;
+                }
+                isDeadAssetsCounter[url.hostname] += obj.http_assets.js_assets.dead + obj.http_assets.css_assets.dead + obj.http_assets.img_assets.dead;
             }
         } catch (e) {
             console.error(`Invalid URL: ${obj.url}`);
@@ -32,6 +39,7 @@ export const extractDomains = (input: HttpResult[]): any => {
         uniqDomains: Array.from(domainSet),
         isAliveCounter,
         isDeadCounter,
+        isDeadAssetsCounter,
         ogImages
     }
 }

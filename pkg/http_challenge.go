@@ -276,6 +276,7 @@ func (hc *HttpChallenge) ping(url string) {
 			OGImage:      "",
 		}
 	} else {
+		Logger().Info("Success opening URL: ", url)
 		result = HttpResult{
 			IsAlive:      hc.isStatusSuccess(hc.browse.StatusCode()),
 			ResponseCode: hc.browse.StatusCode(),
