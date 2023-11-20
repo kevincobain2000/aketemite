@@ -177,17 +177,18 @@ func (hc *HttpChallenge) getOGImage() string {
 			ogImage = src
 		})
 	}
-	ogImage = hc.relativeToAbsoluteURL(ogImage)
+
 	if strings.HasPrefix(ogImage, "//") {
 		ogImage = fmt.Sprintf("%s:%s", hc.browse.Url().Scheme, ogImage)
 	} else if strings.HasPrefix(ogImage, "/") {
 		ogImage = fmt.Sprintf("%s://%s%s", hc.browse.Url().Scheme, hc.browse.Url().Host, ogImage)
 	} else if strings.HasPrefix(ogImage, "./") {
-		ogImage = fmt.Sprintf("%s://%s%s", hc.browse.Url().Scheme, hc.browse.Url().Host, ogImage[1:])
+		ogImage = fmt.Sprintf("%s://%s%s", hc.browse.Url().Scheme, hc.browse.Url().Host+hc.browse.Url().Path, ogImage[1:])
 	}
 	if ogImage == "" {
 		ogImage = GetBaseURL(hc.browse.Url().String()) + "/favicon.ico"
 	}
+	ogImage = hc.relativeToAbsoluteURL(ogImage)
 	return ogImage
 }
 func (hc *HttpChallenge) pingHttpAssets(url URLConfig) HttpAssets {
@@ -206,19 +207,15 @@ func (hc *HttpChallenge) pingHttpAssets(url URLConfig) HttpAssets {
 			}
 
 			hcc := NewHttpChallenge(time.Duration(url.Timeout), false)
-			src = hc.relativeToAbsoluteURL(src)
-
-			if !strings.HasPrefix(src, "http") && !strings.HasPrefix(src, "//") {
-				src = fmt.Sprintf("%s://%s%s", hc.browse.Url().Scheme, hc.browse.Url().Host, src)
+			if strings.HasPrefix(src, "./") {
+				src = fmt.Sprintf("%s://%s%s", hc.browse.Url().Scheme, url.Name, src[1:])
 			} else if strings.HasPrefix(src, "//") {
 				src = fmt.Sprintf("%s:%s", hc.browse.Url().Scheme, src)
 			} else if strings.HasPrefix(src, "/") {
 				src = fmt.Sprintf("%s://%s%s", hc.browse.Url().Scheme, hc.browse.Url().Host, src)
-			} else if strings.HasPrefix(src, "./") {
-				src = fmt.Sprintf("%s://%s%s", hc.browse.Url().Scheme, hc.browse.Url().Host, src[1:])
-			} else if strings.HasPrefix(src, "../") {
-				src = fmt.Sprintf("%s://%s%s", hc.browse.Url().Scheme, hc.browse.Url().Host, src[2:])
 			}
+
+			src = hc.relativeToAbsoluteURL(src)
 
 			if !IsURL2SubsetOfURL1(hc.browse.Url().Scheme+"://"+hc.browse.Url().Host, src) {
 				return
@@ -227,6 +224,12 @@ func (hc *HttpChallenge) pingHttpAssets(url URLConfig) HttpAssets {
 
 			hcc.ping(src)
 			srcWithoutQuery := RemoveAnyQueryParam(src)
+
+			if hcc.Result.IsAlive {
+				Logger().Info("Asset is alive: ", src)
+			} else {
+				Logger().Errorf("Asset is dead. url=%s src=%s", url.Name, src)
+			}
 
 			// if src endswith .js
 			if strings.HasSuffix(srcWithoutQuery, ".js") {
