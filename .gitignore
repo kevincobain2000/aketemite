@@ -26,3 +26,4 @@ ui/out/
 
 .vscode
 logs/
+cache_test

@@ -94,7 +94,7 @@ func GetResponseData(config Config, cache *diskv.Diskv) []HttpResult {
 				go func(u string) {
 					defer wg.Done()
 					Logger().Info("Pinging: ", u)
-					hc.ping(u)
+					hc.ping(u, url)
 					resultsChan <- hc.Result
 				}(u)
 			}
@@ -222,7 +222,7 @@ func (hc *HttpChallenge) pingHttpAssets(url URLConfig) HttpAssets {
 			}
 			Logger().Info("Pinging asset: ", src)
 
-			hcc.ping(src)
+			hcc.ping(src, url)
 			srcWithoutQuery := RemoveAnyQueryParam(src)
 
 			if hcc.Result.IsAlive {
@@ -255,7 +255,7 @@ func (hc *HttpChallenge) pingHttpAssets(url URLConfig) HttpAssets {
 	}
 	return assets
 }
-func (hc *HttpChallenge) ping(url string) {
+func (hc *HttpChallenge) ping(url string, urlConfig URLConfig) {
 	// response timer
 	start := time.Now()
 	err := hc.browse.Open(url)
@@ -295,7 +295,7 @@ func (hc *HttpChallenge) ping(url string) {
 		if hc.crawl {
 			result.HttpAssets = hc.pingHttpAssets(URLConfig{
 				Name:    url,
-				Timeout: 10000,
+				Timeout: urlConfig.Timeout,
 				Crawl:   false,
 			})
 		}
