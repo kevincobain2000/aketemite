@@ -9,10 +9,11 @@ import (
 
 // URLConfig holds the structure of each URL configuration.
 type URLConfig struct {
-	Name    string `yaml:"name"`
-	Timeout int    `yaml:"timeout"`
-	Crawl   bool   `yaml:"crawl"`
-	Enabled bool   `yaml:"enabled"`
+	Name        string `yaml:"name"`
+	Timeout     int    `yaml:"timeout"`
+	Crawl       bool   `yaml:"crawl"`
+	CrawlAssets bool   `yaml:"crawl_assets"`
+	Enabled     bool   `yaml:"enabled"`
 }
 
 // Config represents the top-level configuration structure.

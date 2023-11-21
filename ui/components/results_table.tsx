@@ -319,7 +319,7 @@ export const ResultsTable = () => {
                     }
                   >
                     <TimeAgo date={row.last_failed} />
-                    <span className="text-success">
+                    <span className="text-success font-bold">
                       {row.last_failed ? "" : "Never Failed"}
                     </span>
                   </TableCell>

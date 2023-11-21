@@ -199,11 +199,19 @@ func (hc *HttpChallenge) pingHttpAssets(url URLConfig) HttpAssets {
 		"img":    "src",
 		"link":   "href",
 	}
+
+	alreadyPingUrls := make(map[string]struct{})
 	for tag, attribute := range tagsAttribute {
 		hc.browse.Find(tag).Each(func(_ int, s *goquery.Selection) {
 			src, exists := s.Attr(attribute)
 			if !exists {
 				return
+			}
+			if _, exists := alreadyPingUrls[src]; exists {
+				Logger().Info("Skipping asset: ", src)
+				return
+			} else {
+				alreadyPingUrls[src] = struct{}{}
 			}
 
 			hcc := NewHttpChallenge(time.Duration(url.Timeout), false)
@@ -292,7 +300,7 @@ func (hc *HttpChallenge) ping(url string, urlConfig URLConfig) {
 			LastSuccess:  "",
 		}
 		result.OGImage = hc.getOGImage()
-		if hc.crawl {
+		if urlConfig.CrawlAssets {
 			result.HttpAssets = hc.pingHttpAssets(URLConfig{
 				Name:    url,
 				Timeout: urlConfig.Timeout,
