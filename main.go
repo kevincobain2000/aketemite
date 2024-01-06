@@ -13,7 +13,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/peterbourgon/diskv/v3"
 )
-
+//by goreleaser
 var version = "dev"
 
 //go:embed all:ui/dist/*
