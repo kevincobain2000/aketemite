@@ -324,28 +324,14 @@ export const ResultsTable = () => {
                     </span>
                   </TableCell>
                   <TableCell>
-                    <Card className="max-w-[400px]">
+                    <Card className="max-w-[400px] shadow-none">
                       <CardHeader className="flex gap-3">
-                        <Image
-                          src={row.og_image}
-                          alt="image"
-                          width={40}
-                          height={40}
-                          onError={(e) => {
-                            e.currentTarget.src = "/aketemite/favicon.ico";
-                          }}
-                          objectFit="contain"
-                        />
                         <div className="flex flex-col">
                           <p className="text-md font-semibold">
                             {truncate(row.title, 100)}
                           </p>
-                          <p className="text-small text-default-500">
-                            {truncate(row.description, 100)}
-                          </p>
                         </div>
                       </CardHeader>
-                      <Divider />
                       <CardBody>
                         <Link isExternal href={row.url} aria-label="Link">
                           <span className="text-default-500 break-words w-80 text-sm hover:text-default-900">
