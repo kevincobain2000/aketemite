@@ -62,7 +62,7 @@ export const Navbar = () => {
 					<Link isExternal href={siteConfig.links.github} aria-label="Github">
 						<GithubIcon className="text-default-500" />
 					</Link>
-					<ThemeSwitch />
+					{/* <ThemeSwitch /> */}
 				</NavbarItem>
 			</NavbarContent>
 
@@ -70,7 +70,7 @@ export const Navbar = () => {
 				<Link isExternal href={siteConfig.links.github} aria-label="Github">
 					<GithubIcon className="text-default-500" />
 				</Link>
-				<ThemeSwitch />
+				{/* <ThemeSwitch /> */}
 				<NavbarMenuToggle />
 			</NavbarContent>
 

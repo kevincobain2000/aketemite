@@ -5,7 +5,7 @@ urls:
     crawl_assets: true
   - name: https://kevincobain2000.github.io
     timeout: 2000
-    crawl: false
+    crawl: true
     crawl_assets: true
   - name: https://kevincobain2000.github.io/404
     timeout: 2000

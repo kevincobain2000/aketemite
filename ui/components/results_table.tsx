@@ -273,10 +273,9 @@ export const ResultsTable = () => {
           </span>
           <Table className="pt-5">
             <TableHeader>
-              <TableColumn>IS ALIVE</TableColumn>
               <TableColumn>STATUS</TableColumn>
-              <TableColumn>RESPONSE TIME</TableColumn>
-              <TableColumn>RESPONSE SIZE</TableColumn>
+              <TableColumn>RESP TIME</TableColumn>
+              <TableColumn>SIZE</TableColumn>
               <TableColumn>LAST SUCCESS</TableColumn>
               <TableColumn>LAST FAILED</TableColumn>
               <TableColumn>URL</TableColumn>
@@ -284,27 +283,19 @@ export const ResultsTable = () => {
             <TableBody emptyContent={"No rows to display."}>
               {filteredData.map((row) => (
                 <TableRow key={uuidv4()}>
-                  <TableCell>
-                    <Chip
-                      color={row.is_alive ? "success" : "danger"}
-                      variant={row.is_alive ? "shadow" : "bordered"}
-                    >
-                      <span className="font-bold">
-                        {row.is_alive ? "YES" : "NO"}
-                      </span>
-                    </Chip>
-                  </TableCell>
                   <TableCell
                     className={
                       row.is_alive
-                        ? "font-semibold text-success"
-                        : "font-semibold text-danger"
+                        ? "text-success font-semibold"
+                        : "font-bold text-danger"
                     }
                   >
                     {row.response_code}
                   </TableCell>
                   <TableCell>{row.response_time}</TableCell>
-                  <TableCell>{row.response_size}kb</TableCell>
+                  <TableCell>
+                    <span className="text-default-400">{row.response_size}kb</span>
+                  </TableCell>
                   <TableCell className="text-default-400">
                     <TimeAgo date={row.last_success} />
                     <span className="text-danger font-bold">
@@ -318,20 +309,24 @@ export const ResultsTable = () => {
                         : "text-danger font-bold"
                     }
                   >
-                    <TimeAgo date={row.last_failed} />
-                    <span className="text-success font-bold">
-                      {row.last_failed ? "" : "Never Failed"}
+
+                    <span className="">
+                      {row.last_failed ? (
+                        <>
+                            <ErrorIcon className="text-danger inline-block pr-1" />
+                            <TimeAgo date={row.last_failed} />
+                        </>
+                      ) : (
+                        <>
+                            Never Failed
+                        </>
+
+                      )}
+
                     </span>
                   </TableCell>
                   <TableCell>
                     <Card className="max-w-[400px] shadow-none">
-                      <CardHeader className="flex gap-3">
-                        <div className="flex flex-col">
-                          <p className="text-md font-semibold">
-                            {truncate(row.title, 100)}
-                          </p>
-                        </div>
-                      </CardHeader>
                       <CardBody>
                         <Link isExternal href={row.url} aria-label="Link">
                           <span className="text-default-500 break-words w-80 text-sm hover:text-default-900">
@@ -343,11 +338,11 @@ export const ResultsTable = () => {
                                 0
                                   ? "text-warning-500"
                                   : row.is_alive
-                                  ? "text-violet-600"
+                                  ? ""
                                   : "text-danger font-bold"
                               } break-words w-80 hover:underline`}
                             >
-                              {truncate(row.url, 150)}
+                              {truncate(row.url, 80)}
                             </p>
                           </span>
                         </Link>

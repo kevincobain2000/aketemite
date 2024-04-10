@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 body {
-    background-image: url('/aketemite/docs-right.png');
+    /* background-image: url('/aketemite/docs-right.png'); */
     background-repeat: no-repeat;
     background-size: 50%;
 }
